@@ -3,6 +3,12 @@ Palette: Deep surfaces, electric blue accent
 Typography: Inter (body+display) — clean, functional
 Density: Balanced */
 
+html, body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-width: 100%;
+}
+
 :root,
 [data-theme="light"] {
   --color-bg: #f0f2f5;
@@ -53,7 +59,7 @@ Density: Balanced */
   --space-10: 2.5rem;
   --space-12: 3rem;
   --space-16: 4rem;
-  --content-default: 1700px;
+  --content-default: 1200px;
   --sidebar-width: 220px;
   --topbar-height: 60px;
   --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
@@ -147,6 +153,9 @@ body {
 }
 
 img,
+picture,
+video,
+canvas,
 svg {
   display: block;
   max-width: 100%;
@@ -282,7 +291,7 @@ select {
 }
 
 .sidebar-logo-sub {
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   font-weight: 400;
   letter-spacing: 0.06em;
@@ -496,7 +505,7 @@ select {
   border: 1px solid transparent;
   cursor: pointer;
   white-space: nowrap;
-  min-height: 38px;
+  min-height: 44px;
 }
 
 .btn svg {
@@ -865,7 +874,7 @@ select {
 .step small {
   display: block;
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   margin-bottom: 6px;
@@ -1165,7 +1174,10 @@ select {
   }
 
   .main-wrapper {
-    margin-left: 0;
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    min-width: 0;
+    overflow-x: hidden;
   }
 
   .topbar {
