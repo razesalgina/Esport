@@ -1174,8 +1174,8 @@ select {
   }
 
   .main-wrapper {
-    margin-left: var(--sidebar-width);
-    width: calc(100% - var(--sidebar-width));
+    margin-left: 0;
+    width: 100%;
     min-width: 0;
     overflow-x: hidden;
   }
