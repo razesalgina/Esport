@@ -1,197 +1,299 @@
+<!-- === PART 1/2 === -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Tambah Turnamen — TourneyPro</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tambah Turnamen — TourneyPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
 
-<script>
-(function(){
-  var d=document.documentElement;
-  var pref=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
-  d.setAttribute('data-theme',pref);
-  function updateIcon(theme){
-    var btn=document.getElementById('themeToggle');
-    if(!btn)return;
-    btn.innerHTML=theme==='dark'
-      ?'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
-      :'<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-  }
-  window.toggleTheme=function(){
-    var curr=d.getAttribute('data-theme')||'light';
-    var next=curr==='dark'?'light':'dark';
-    d.setAttribute('data-theme',next);
-    updateIcon(next);
-  };
-  window.addEventListener('DOMContentLoaded',function(){updateIcon(d.getAttribute('data-theme'));});
-})();
-</script>
+  <script>
+  (function(){
+    var d = document.documentElement;
+    var pref = window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+    d.setAttribute('data-theme', pref);
 
+    function updateIcon(theme){
+      var btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      btn.innerHTML = theme === 'dark'
+        ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+        : '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    }
+
+    window.toggleTheme = function(){
+      var curr = d.getAttribute('data-theme') || 'light';
+      var next = curr === 'dark' ? 'light' : 'dark';
+      d.setAttribute('data-theme', next);
+      updateIcon(next);
+    };
+
+    window.addEventListener('DOMContentLoaded', function(){
+      updateIcon(d.getAttribute('data-theme'));
+    });
+  })();
+  </script>
 </head>
 <body>
 <div class="app-layout">
 
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-<nav class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="sidebar-logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
-    </div>
-    <div>
-      <div class="sidebar-logo-text">TourneyPro</div>
-      <div class="sidebar-logo-sub">MLBB Manager</div>
-    </div>
-  </div>
-  <div class="sidebar-nav">
-    <div class="nav-section-label">Navigation</div>
-    <a href="index.html" class="nav-item" data-page="index.html"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dashboard</a>
-<a href="tournament.html" class="nav-item active" data-page="tournament.html"><svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>Tournament</a>
-<a href="match.html" class="nav-item" data-page="match.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Match</a>
-<a href="train.html" class="nav-item" data-page="train.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Train</a>
-<a href="team.html" class="nav-item" data-page="team.html"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Tim</a>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  </div>
-  <div class="sidebar-footer">
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-    </button>
-  </div>
-</nav>
-
-<div class="main-wrapper">
-
-<header class="topbar">
-  <div class="topbar-breadcrumb">
-    <button class="menu-toggle" id="menuToggle">
-      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <span>Tournament</span><span class="sep">/</span><span class="current">Tambah Turnamen</span>
-  </div>
-</header>
-
-<main class="page-content">
-
-<div class="page-header">
-  <div>
-    <h1 class="page-title">Tambah Turnamen</h1>
-    <p class="page-sub">Isi detail turnamen baru yang akan diikuti tim</p>
-  </div>
-  <a href="tournament.html" class="btn btn-secondary">
-    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    Kembali
-  </a>
-</div>
-
-<div class="card form-card">
-  <form id="tourForm" onsubmit="saveTournament(event)">
-    <div class="form-section">
-      <div class="form-section-title">Informasi Dasar</div>
-
-      <div class="form-group">
-        <label class="form-label" for="namaTurnamen">Nama Turnamen</label>
-        <input class="form-input" type="text" id="namaTurnamen" placeholder="Contoh: MPL ID Season 14" required/>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+        </svg>
       </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5);">
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label" for="jumlahTim">Jumlah Tim</label>
-          <select class="form-select" id="jumlahTim">
-            <option value="4">4 Tim</option>
-            <option value="8" selected>8 Tim</option>
-            <option value="16">16 Tim</option>
-            <option value="32">32 Tim</option>
-            <option value="64">64 Tim</option>
-            <option value="128">128 Tim</option>
-            <option value="256">256 Tim</option>
-          </select>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label" for="faseSelect">Fase</label>
-          <select class="form-select" id="faseSelect">
-            <option value="Fase 1">Fase 1</option>
-            <option value="Fase 2">Fase 2</option>
-            <option value="Fase 3">Fase 3</option>
-            <option value="Fase 4">Fase 4</option>
-          </select>
-        </div>
+      <div>
+        <div class="sidebar-logo-text">TourneyPro</div>
+        <div class="sidebar-logo-sub">MLBB Manager</div>
       </div>
     </div>
 
-    <div class="form-section">
-      <div class="form-section-title">Format Turnamen <span style="font-weight:400;letter-spacing:0;text-transform:none;">(Bisa pilih lebih dari 1)</span></div>
-      <div class="checkbox-grid">
-        <label class="checkbox-item"><input type="checkbox" name="format" value="Single Elimination"/><span>Single Elimination</span></label>
-        <label class="checkbox-item"><input type="checkbox" name="format" value="Double Elimination"/><span>Double Elimination</span></label>
-        <label class="checkbox-item"><input type="checkbox" name="format" value="Group Stage"/><span>Group Stage</span></label>
-        <label class="checkbox-item"><input type="checkbox" name="format" value="Swiss Stage"/><span>Swiss Stage</span></label>
-        <label class="checkbox-item"><input type="checkbox" name="format" value="Round Robin"/><span>Round Robin</span></label>
-        <label class="checkbox-item"><input type="checkbox" name="format" value="Playoff"/><span>Playoff</span></label>
-      </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Navigation</div>
+      <a href="index.html" class="nav-item" data-page="index.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Dashboard
+      </a>
+      <a href="tournament.html" class="nav-item active" data-page="tournament.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+          <path d="M4 22h16"/>
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+        </svg>
+        Tournament
+      </a>
+      <a href="match.html" class="nav-item" data-page="match.html">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Match
+      </a>
+      <a href="train.html" class="nav-item" data-page="train.html">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Train
+      </a>
+      <a href="team.html" class="nav-item" data-page="team.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Tim
+      </a>
     </div>
 
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Simpan Turnamen
+    <div class="sidebar-footer">
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
       </button>
-      <a href="tournament.html" class="btn btn-ghost">Batal</a>
     </div>
-  </form>
+  </nav>
+
+  <div class="main-wrapper">
+
+    <header class="topbar">
+      <div class="topbar-breadcrumb">
+        <button class="menu-toggle" id="menuToggle" aria-label="Buka menu">
+          <svg viewBox="0 0 24 24">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <span>Tournament</span>
+        <span class="sep">/</span>
+        <span class="current">Tambah Turnamen</span>
+      </div>
+    </header>
+
+    <main class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Tambah Turnamen</h1>
+          <p class="page-sub">Isi detail turnamen baru yang akan diikuti tim</p>
+        </div>
+        <a href="tournament.html" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Kembali
+        </a>
+      </div>
+
+      <div class="card form-card">
+        <form id="tourForm" onsubmit="saveTournament(event)">
+          <div class="form-section">
+            <div class="form-section-title">Informasi Dasar</div>
+
+            <div class="form-group">
+              <label class="form-label" for="namaTurnamen">Nama Turnamen</label>
+              <input class="form-input" type="text" id="namaTurnamen" placeholder="Contoh: MPL ID Season 14" required/>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="jumlahTim">Jumlah Tim</label>
+                <select class="form-select" id="jumlahTim">
+                  <option value="4">4 Tim</option>
+                  <option value="8" selected>8 Tim</option>
+                  <option value="16">16 Tim</option>
+                  <option value="32">32 Tim</option>
+                  <option value="64">64 Tim</option>
+                  <option value="128">128 Tim</option>
+                  <option value="256">256 Tim</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="faseSelect">Fase</label>
+                <select class="form-select" id="faseSelect">
+                  <option value="Fase 1">Fase 1</option>
+                  <option value="Fase 2">Fase 2</option>
+                  <option value="Fase 3">Fase 3</option>
+                  <option value="Fase 4">Fase 4</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              Format Turnamen
+              <span>(Bisa pilih lebih dari 1)</span>
+            </div>
+            <div class="checkbox-grid">
+              <label class="checkbox-item">
+                <input type="checkbox" name="format" value="Single Elimination"/>
+                <span>Single Elimination</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="format" value="Double Elimination"/>
+                <span>Double Elimination</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="format" value="Group Stage"/>
+                <span>Group Stage</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="format" value="Swiss Stage"/>
+                <span>Swiss Stage</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="format" value="Round Robin"/>
+                <span>Round Robin</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="format" value="Playoff"/>
+                <span>Playoff</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <svg viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Simpan Turnamen
+            </button>
+            <a href="tournament.html" class="btn btn-ghost">Batal</a>
+          </div>
+        </form>
+      </div>
+
+      <script>
+      function saveTournament(e){
+        e.preventDefault();
+        var formats = Array.from(
+          document.querySelectorAll('input[name="format"]:checked')
+        ).map(function(cb){ return cb.value; });
+
+        if (formats.length === 0) {
+          showToast('Pilih minimal satu format turnamen', 'error');
+          return;
+        }
+
+        showToast('Turnamen berhasil disimpan!', 'success');
+        setTimeout(function(){
+          window.location.href = 'tournament.html';
+        }, 1500);
+      }
+      </script>
+
+    </main>
+  </div>
 </div>
 
-<script>
-function saveTournament(e){
-  e.preventDefault();
-  var formats = Array.from(document.querySelectorAll('input[name="format"]:checked')).map(function(cb){return cb.value;});
-  if(formats.length===0){showToast('Pilih minimal satu format turnamen','error');return;}
-  showToast('Turnamen berhasil disimpan!','success');
-  setTimeout(function(){window.location.href='tournament.html';},1500);
-}
-</script>
-
-</main>
-</div>
-</div>
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
 window.addEventListener('DOMContentLoaded',function(){
-  var toggle=document.getElementById('menuToggle');
-  var sidebar=document.getElementById('sidebar');
-  var overlay=document.getElementById('sidebarOverlay');
-  if(toggle){
+  var toggle  = document.getElementById('menuToggle');
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+
+  if (toggle) {
     toggle.addEventListener('click',function(){
       sidebar.classList.toggle('open');
       overlay.classList.toggle('show');
     });
   }
-  if(overlay){
+
+  if (overlay) {
     overlay.addEventListener('click',function(){
       sidebar.classList.remove('open');
       overlay.classList.remove('show');
     });
   }
+
   // Mark active nav item
-  var path=window.location.pathname.split('/').pop();
+  var path = window.location.pathname.split('/').pop();
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
-    if(el.dataset.page===path)el.classList.add('active');
+    if (el.dataset.page === path) el.classList.add('active');
   });
 });
+
 function showToast(msg,type){
-  type=type||'success';
-  var c=document.getElementById('toastContainer');
-  if(!c)return;
-  var t=document.createElement('div');
-  t.className='toast '+type;
-  t.innerHTML='<span class="toast-icon"><svg viewBox="0 0 24 24">'
-    +(type==='success'?'<polyline points="20 6 9 17 4 12"/>':'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>')
-    +'</svg></span><span>'+msg+'</span><span class="toast-close" onclick="this.parentElement.remove()">&times;</span>';
+  type = type || 'success';
+  var c = document.getElementById('toastContainer');
+  if (!c) return;
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML =
+    '<span class="toast-icon"><svg viewBox="0 0 24 24">' +
+    (type === 'success'
+      ? '<polyline points="20 6 9 17 4 12"/>'
+      : '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>') +
+    '</svg></span><span>' +
+    msg +
+    '</span><span class="toast-close" onclick="this.parentElement.remove()">&times;</span>';
   c.appendChild(t);
-  setTimeout(function(){t.remove();},3500);
+  setTimeout(function(){ t.remove(); }, 3500);
 }
 </script>
 
