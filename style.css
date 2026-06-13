@@ -726,13 +726,16 @@ a, button, [role="button"], input, textarea, select {
 
 /* ---- Form layout helpers ---- */
 
-/*
- * .form-stack — replaces inline style="display:grid; gap:16px; margin-top:16px;"
- */
 .form-stack {
   display: grid;
   gap: var(--space-4);
   margin-top: var(--space-4);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
 }
 
 /*
@@ -1291,6 +1294,10 @@ a, button, [role="button"], input, textarea, select {
   .grid-2,
   .grid-3,
   .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid-2 {
     grid-template-columns: 1fr;
   }
 
