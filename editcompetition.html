@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Kompetisi — Esport</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"/>
+
+  <script src="js/global.js" defer></script>
+  <script src="js/editcompetition.js" defer></script>
+</head>
+<body>
+<div class="app-layout">
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="sidebar-logo-text">Esport</div>
+        <div class="sidebar-logo-sub">MLBB Manager</div>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Navigation</div>
+      <a href="index.html" class="nav-item" data-page="index.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Dashboard
+      </a>
+      <a href="competition.html" class="nav-item" data-page="competition.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+          <path d="M4 22h16"/>
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+        </svg>
+        Competition
+      </a>
+      <a href="match.html" class="nav-item" data-page="match.html">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Match
+      </a>
+      <a href="train.html" class="nav-item" data-page="train.html">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Train
+      </a>
+      <a href="team.html" class="nav-item" data-page="team.html">
+        <svg viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Tim
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <button
+        class="theme-toggle"
+        id="themeToggle"
+        aria-label="Toggle theme"
+      >
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div class="topbar-breadcrumb">
+        <button class="menu-toggle" id="menuToggle" aria-label="Buka menu">
+          <svg viewBox="0 0 24 24">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <span>Competition</span>
+        <span class="sep">/</span>
+        <span class="current">Nama Kompetisi</span> <!-- Nama Kompetisi Input di JavaScript -->
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Nama Kompetisi</h1> <!-- Nama Kompetisi Input di JavaScript -->
+          <p class="page-sub">Isi detail tournament atau league yang diikuti tim</p>
+        </div>
+        <a href="competition.html" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Kembali
+        </a>
+      </div>
+
+      <div class="card form-card">
+        <form id="competitionForm">
+          <!-- Informasi dasar -->
+          <div class="form-section">
+            <div class="form-section-title">Informasi Dasar</div>
+
+            <!-- Type: Tournament / League -->
+            <div class="form-group">
+              <label class="form-label">Tipe Kompetisi</label>
+              <div class="radio-group">
+                <label class="radio-item">
+                  <input type="radio" name="type" value="tournament"/>
+                  <span>Tournament</span>
+                </label>
+                <label class="radio-item">
+                  <input type="radio" name="type" value="league"/>
+                  <span>League</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Nama kompetisi -->
+            <div class="form-group">
+              <label class="form-label" for="competitionName">Nama Kompetisi</label>
+              <input
+                class="form-input"
+                type="text"
+                id="competitionName"
+                name="competitionName"
+                placeholder="Contoh: MPL ID Season 14"
+              />
+            </div>
+
+            <!-- Biaya registrasi & prizepool -->
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="registrationFee">Biaya Registrasi</label>
+                <input
+                  class="form-input"
+                  type="number"
+                  id="registrationFee"
+                  name="registrationFee"
+                  min="0"
+                  placeholder="Contoh: 1500000"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="prizepool">Prizepool</label>
+                <input
+                  class="form-input"
+                  type="number"
+                  id="prizepool"
+                  name="prizepool"
+                  min="0"
+                  placeholder="Contoh: 250000000"
+                />
+              </div>
+            </div>
+
+            <!-- Rank & Status -->
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="finalRank">Rank Akhir</label>
+                <select class="form-select" id="finalRank" name="finalRank">
+                  <option value="">Uknown</option>
+                  <option value="1st">1st</option>
+                  <option value="2nd">2nd</option>
+                  <option value="3rd">3rd</option>
+                  <option value="4th">4th</option>
+                  <option value="8th">8th</option>
+                  <option value="16th">16th</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="competitionStatus">Status</label>
+                <select class="form-select" id="competitionStatus" name="competitionStatus">
+                  <option value="" selected>Upcoming</option>
+                  <option value="cancel">Cancel</option>
+                  <option value="lose">Lose</option>
+                  <option value="win">Win</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Jumlah tim & jumlah fase -->
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="teamCount">Jumlah Tim</label>
+                <select class="form-select" id="teamCount" name="teamCount">
+                  <option value="4">4 Tim</option>
+                  <option value="8">8 Tim</option>
+                  <option value="16">16 Tim</option>
+                  <option value="32 selected">32 Tim</option>
+                  <option value="64">64 Tim</option>
+                  <option value="128">128 Tim</option>
+                  <option value="256">256 Tim</option>
+                  <option value="512">512 Tim</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="phaseCount">Jumlah Fase</label>
+                <select class="form-select" id="phaseCount" name="phaseCount">
+                  <option value="1" selected>1 Fase</option>
+                  <option value="2">2 Fase</option>
+                  <option value="3">3 Fase</option>
+                  <option value="4">4 Fase</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Format per fase -->
+          <div class="form-section" id="phaseFormatSection">
+            <div class="form-section-title">
+              Format per Fase
+              <span>(Atur format, status, dan link bracket tiap fase)</span>
+            </div>
+
+            <!-- Fase 1 -->
+            <div class="form-group" id="phase1Group">
+              <label class="form-label">Fase 1</label>
+
+              <!-- Format Fase 1 -->
+              <div class="form-group">
+                <label class="form-label">Format Fase 1</label>
+                <div class="radio-group">
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat1" value="single_elimination"/>
+                    <span>Single Elimination</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat1" value="double_elimination"/>
+                    <span>Double Elimination</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat1" value="group_stage"/>
+                    <span>Group Stage</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat1" value="swiss_stage"/>
+                    <span>Swiss Stage</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Hidden sub-form Fase 1 (akan di-show/hide via JS) -->
+              <div class="form-grid-3">
+                <div class="form-group hidden" id="phase1PositionGroup">
+                  <label class="form-label" for="phase1Position">Posisi Bracket</label>
+                  <select class="form-select" id="phase1Position" name="phase1Position">
+                    <option value="">Pilih posisi</option>
+                    <option value="upper">Upper</option>
+                    <option value="lower">Lower</option>
+                  </select>
+                </div>
+
+                <div class="form-group hidden" id="phase1GroupTeamCountGroup">
+                  <label class="form-label" for="phase1GroupTeamCount">Jumlah Tim per Group</label>
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="phase1GroupTeamCount"
+                    name="phase1GroupTeamCount"
+                    min="2"
+                    placeholder="Contoh: 4"
+                  />
+                </div>
+
+                <div class="form-group hidden" id="phase1SwissRoundGroup">
+                  <label class="form-label" for="phase1SwissRound">Jumlah Round Swiss</label>
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="phase1SwissRound"
+                    name="phase1SwissRound"
+                    min="1"
+                    placeholder="Contoh: 5"
+                  />
+                </div>
+              </div>
+
+              <!-- Status & Link bracket Fase 1 -->
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="phaseStatus1">Status Fase 1</label>
+                  <select class="form-select" id="phaseStatus1" name="phaseStatus1">
+                    <option value="">Upcoming</option>
+                    <option value="lose">Lose</option>
+                    <option value="win">Win</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="phaseBracket1">Link Bracket Fase 1</label>
+                  <input
+                    class="form-input"
+                    type="url"
+                    id="phaseBracket1"
+                    name="phaseBracket1"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            </div>
+          
+
+          <!-- Fase 2 -->
+            <div class="form-group hidden" id="phase2Group">
+              <label class="form-label">Fase 2</label>
+
+              <!-- Format Fase 2 -->
+              <div class="form-group">
+                <label class="form-label">Format Fase 2</label>
+                <div class="radio-group">
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat2" value="single_elimination"/>
+                    <span>Single Elimination</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat2" value="double_elimination"/>
+                    <span>Double Elimination</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat2" value="group_stage"/>
+                    <span>Group Stage</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat2" value="swiss_stage"/>
+                    <span>Swiss Stage</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Hidden sub-form Fase 2 (akan di-show/hide via JS) -->
+              <div class="form-grid-3">
+                <div class="form-group hidden" id="phase2PositionGroup">
+                  <label class="form-label" for="phase2Position">Posisi Bracket</label>
+                  <select class="form-select" id="phase2Position" name="phase2Position">
+                    <option value="">Pilih posisi</option>
+                    <option value="upper">Upper</option>
+                    <option value="lower">Lower</option>
+                  </select>
+                </div>
+
+                <div class="form-group hidden" id="phase2GroupTeamCountGroup">
+                  <label class="form-label" for="phase2GroupTeamCount">Jumlah Tim per Group</label>
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="phase2GroupTeamCount"
+                    name="phase2GroupTeamCount"
+                    min="2"
+                    placeholder="Contoh: 4"
+                  />
+                </div>
+
+                <div class="form-group hidden" id="phase2SwissRoundGroup">
+                  <label class="form-label" for="phase2SwissRound">Jumlah Round Swiss</label>
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="phase2SwissRound"
+                    name="phase2SwissRound"
+                    min="1"
+                    placeholder="Contoh: 5"
+                  />
+                </div>
+              </div>
+
+              <!-- Status & Link bracket Fase 2 -->
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="phaseStatus2">Status Fase 2</label>
+                  <select class="form-select" id="phaseStatus2" name="phaseStatus2">
+                    <option value="">Upcoming</option>
+                    <option value="lose">Lose</option>
+                    <option value="win">Win</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="phaseBracket2">Link Bracket Fase 2</label>
+                  <input
+                    class="form-input"
+                    type="url"
+                    id="phaseBracket2"
+                    name="phaseBracket2"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            </div>
+
+              <!-- Fase 3 -->
+            <div class="form-group hidden" id="phase3Group">
+              <label class="form-label">Fase 3</label>
+
+              <!-- Format Fase 3 -->
+              <div class="form-group">
+                <label class="form-label">Format Fase 3</label>
+                <div class="radio-group">
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat3" value="single_elimination"/>
+                    <span>Single Elimination</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat3" value="double_elimination"/>
+                    <span>Double Elimination</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat3" value="group_stage"/>
+                    <span>Group Stage</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat3" value="swiss_stage"/>
+                    <span>Swiss Stage</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Hidden sub-form Fase 3 (akan di-show/hide via JS) -->
+              <div class="form-grid-3">
+                <div class="form-group hidden" id="phase3PositionGroup">
+                  <label class="form-label" for="phase3Position">Posisi Bracket</label>
+                  <select class="form-select" id="phase3Position" name="phase3Position">
+                    <option value="">Pilih posisi</option>
+                    <option value="upper">Upper</option>
+                    <option value="lower">Lower</option>
+                  </select>
+                </div>
+
+                <div class="form-group hidden" id="phase3GroupTeamCountGroup">
+                  <label class="form-label" for="phase3GroupTeamCount">Jumlah Tim per Group</label>
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="phase3GroupTeamCount"
+                    name="phase3GroupTeamCount"
+                    min="2"
+                    placeholder="Contoh: 4"
+                  />
+                </div>
+
+                <div class="form-group hidden" id="phase3SwissRoundGroup">
+                  <label class="form-label" for="phase3SwissRound">Jumlah Round Swiss</label>
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="phase3SwissRound"
+                    name="phase3SwissRound"
+                    min="1"
+                    placeholder="Contoh: 5"
+                  />
+                </div>
+              </div>
+
+              <!-- Status & Link bracket Fase 3 -->
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="phaseStatus3">Status Fase 3</label>
+                  <select class="form-select" id="phaseStatus3" name="phaseStatus3">
+                    <option value="">Upcoming</option>
+                    <option value="lose">Lose</option>
+                    <option value="win">Win</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="phaseBracket3">Link Bracket Fase 3</label>
+                  <input
+                    class="form-input"
+                    type="url"
+                    id="phaseBracket3"
+                    name="phaseBracket3"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            </div>
+
+             <!-- Fase 4 -->
+            <div class="form-group hidden" id="phase4Group">
+              <label class="form-label">Fase 4</label>
+
+              <!-- Format Fase 4 -->
+              <div class="form-group">
+                <label class="form-label">Format Fase 4</label>
+                <div class="radio-group">
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat4" value="single_elimination"/>
+                    <span>Single Elimination</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat4" value="double_elimination"/>
+                    <span>Double Elimination</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat4" value="group_stage"/>
+                    <span>Group Stage</span>
+                  </label>
+                  <label class="radio-item">
+                    <input type="radio" name="phaseFormat4" value="swiss_stage"/>
+                    <span>Swiss Stage</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Hidden sub-form Fase 4 (akan di-show/hide via JS) -->
+              <div class="form-grid-3">
+                <div class="form-group hidden" id="phase4PositionGroup">
+                  <label class="form-label" for="phase4Position">Posisi Bracket</label>
+                  <select class="form-select" id="phase4Position" name="phase4Position">
+                    <option value="">Pilih posisi</option>
+                    <option value="upper">Upper</option>
+                    <option value="lower">Lower</option>
+                  </select>
+                </div>
+
+                <div class="form-group hidden" id="phase4GroupTeamCountGroup">
+                  <label class="form-label" for="phase4GroupTeamCount">Jumlah Tim per Group</label>
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="phase4GroupTeamCount"
+                    name="phase4GroupTeamCount"
+                    min="2"
+                    placeholder="Contoh: 4"
+                  />
+                </div>
+
+                <div class="form-group hidden" id="phase4SwissRoundGroup">
+                  <label class="form-label" for="phase4SwissRound">Jumlah Round Swiss</label>
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="phase4SwissRound"
+                    name="phase4SwissRound"
+                    min="1"
+                    placeholder="Contoh: 5"
+                  />
+                </div>
+              </div>
+
+              <!-- Status & Link bracket Fase 4 -->
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="phaseStatus4">Status Fase 4</label>
+                  <select class="form-select" id="phaseStatus4" name="phaseStatus4">
+                    <option value="">Upcoming</option>
+                    <option value="lose">Lose</option>
+                    <option value="win">Win</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="phaseBracket4">Link Bracket Fase 4</label>
+                  <input
+                    class="form-input"
+                    type="url"
+                    id="phaseBracket4"
+                    name="phaseBracket4"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <svg viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Simpan Perubahan
+            </button>
+            <a href="competition.html" class="btn btn-ghost">Batal</a>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+</body>
+</html>
