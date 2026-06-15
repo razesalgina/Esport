@@ -64,6 +64,7 @@
       datetimeGroup.classList.remove('hidden');
       dateGroup.classList.remove('hidden');
       timeGroup.classList.remove('hidden'); // jam muncul
+      loadUpcomingCompetitions();
     } else if (type === 'scrim') {
       formatGroup.classList.remove('hidden');
       opponentGroup.classList.remove('hidden');
@@ -89,6 +90,8 @@
     const matchDate = formData.get('matchDate') || '';
     const matchTime = formData.get('matchTime') || '';
     const matchFormat = formData.get('matchFormat') || '';
+    const competitionIdRaw = formData.get('event') || '';
+    const competitionId = competitionIdRaw ? Number(competitionIdRaw) : null;
 
    if (!type) {
       showToast('Kategori match wajib dipilih', 'error');
@@ -96,10 +99,10 @@
     }
 
     if (type === 'tournament' || type === 'league') {
-      if (!matchFormat || !opponentName || !matchDate || !matchTime) {
-        showToast('Format, lawan, tanggal, dan jam wajib diisi untuk Tournament/League', 'error');        
+      if (!matchFormat || !opponentName || !matchDate || !matchTime || !competitionId) {
+        showToast('Format, lawan, tanggal, jam, dan nama kompetisi wajib diisi', 'error');
         return;
-      }
+      } 
     } else if (type === 'scrim') {
       if (!matchFormat || !opponentName || !matchDate) {
         showToast('Format, lawan, dan tanggal wajib diisi untuk Scrim', 'error');        
@@ -115,6 +118,7 @@
     const payload = {
       action: 'add',
       type,
+      competition_id: competitionId,
       opponent_name: opponentName || null,
       our_score: 0,
       opponent_score: 0,
@@ -157,7 +161,46 @@
     formElement.addEventListener('submit', handleSubmit);
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  function loadUpcomingCompetitions() {
+    const apiBase = window.EsportConfig ? window.EsportConfig.apiBase : 'db/';
+    const select = document.getElementById('eventSelect');
+    if (!select) return;
+
+    // Kosongkan dulu, lalu set placeholder
+    select.innerHTML = '<option value="">Pilih Tournament/League</option>';
+
+    fetch(`${apiBase}competition_api.php?action=list`)
+      .then(async (response) => {
+        const json = await response.json().catch(() => null);
+        if (!response.ok || !json || !json.ok) {
+          throw new Error((json && json.message) || 'Gagal mengambil daftar kompetisi.');
+        }
+        return json.competitions || [];
+      })
+      .then((competitions) => {
+        const filtered = competitions.filter((c) => {
+          const type = (c.type || '').toLowerCase();
+          const status = (c.status || '').toLowerCase();
+          return (type === 'tournament' || type === 'league') && status === 'upcoming';
+        });
+
+        filtered.forEach((c) => {
+          const opt = document.createElement('option');
+          opt.value = c.id; // simpan id competition
+          opt.textContent = `${c.name} (${c.type})`;
+          select.appendChild(opt);
+        });
+      })
+      .catch((error) => {
+        console.error('loadUpcomingCompetitions error:', error);
+        // Biarkan placeholder default saja, atau bisa pakai toast
+        if (window.Esport && typeof window.Esport.showToast === 'function') {
+          window.Esport.showToast(error.message || 'Gagal memuat daftar kompetisi.', 'error');
+        }
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {    
     initAddMatchPage();
   });
 })();
