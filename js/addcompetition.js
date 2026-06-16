@@ -254,6 +254,9 @@ function attachPhaseCountListener() {
   function buildCompetitionPayload(formElement) {
     const formData = new FormData(formElement);
 
+    const idRaw = formData.get('id') || formData.get('competitionId') || '';
+    const id = parseInt(idRaw, 10) || 0;
+
     const typeRaw = formData.get('type') || '';
     const type = typeRaw.toLowerCase();
     const name = (formData.get('competitionName') || '').toString().trim();
@@ -317,6 +320,8 @@ function attachPhaseCountListener() {
       phaseCount >= 4 ? getPhaseInt('phase4GroupTeamCount') : null;
 
     return {
+      id,  // ← penting untuk update
+
       type,
       name,
       registration_fee: Number(registrationFee) || 0,
@@ -341,7 +346,6 @@ function attachPhaseCountListener() {
       phase_bracket3: phaseBracket3,
       phase_bracket4: phaseBracket4,
 
-      // field baru
       phase_start_date1,
       phase_start_date2,
       phase_start_date3,
