@@ -12,6 +12,178 @@
     }
   }
 
+function getPhaseID(index) {
+  return document.getElementById(`phase${index}Group`);
+}
+
+const MAX_PHASES = 4;
+
+function createPhaseHtml(index) {
+  return `
+    <div class="form-group ${index > 1 ? 'hidden' : ''}" id="phase${index}Group">
+      <label class="form-label">Fase ${index}</label>
+
+      <!-- Format Fase ${index} -->
+      <div class="form-group">
+        <label class="form-label">Format Fase ${index}</label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="phaseFormat${index}" value="single_elimination"/>
+            <span>Single Elimination</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="phaseFormat${index}" value="double_elimination"/>
+            <span>Double Elimination</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="phaseFormat${index}" value="group_stage"/>
+            <span>Group Stage</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="phaseFormat${index}" value="swiss_stage"/>
+            <span>Swiss Stage</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Jumlah Tim per Fase & Tanggal Mulai -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="phase${index}TeamCount">Jumlah Tim per Fase</label>
+          <input
+            class="form-input"
+            type="number"
+            id="phase${index}TeamCount"
+            name="phase${index}TeamCount"
+            min="2"
+            placeholder="Contoh: 8"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="phase${index}StartDate">Tanggal Mulai</label>
+          <input
+            class="form-input"
+            type="date"
+            id="phase${index}StartDate"
+            name="phase${index}StartDate"
+          />
+        </div>
+      </div>
+
+      <!-- Hidden sub-form Fase ${index} (akan di-show/hide via JS) -->
+      <div class="form-grid-3">
+        <div class="form-group hidden" id="phase${index}PositionGroup">
+          <label class="form-label" for="phase${index}Position">Posisi Bracket</label>
+          <select class="form-select" id="phase${index}Position" name="phase${index}Position">
+            <option value="">Pilih posisi</option>
+            <option value="upper">Upper</option>
+            <option value="lower">Lower</option>
+          </select>
+        </div>
+
+        <div class="form-grid-2 hidden" id="phase${index}GroupTeamCountGroup">
+          <div class="form-group">
+            <label class="form-label" for="phase${index}GroupCount">Jumlah Group</label>
+            <input
+              class="form-input"
+              type="number"
+              id="phase${index}GroupCount"
+              name="phase${index}GroupCount"
+              min="0"
+              placeholder="Contoh: 4"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="phase${index}GroupTeamCount">Jumlah Tim per Group</label>
+            <input
+              class="form-input"
+              type="number"
+              id="phase${index}GroupTeamCount"
+              name="phase${index}GroupTeamCount"
+              min="2"
+              placeholder="Contoh: 4"
+            />
+          </div>
+        </div>
+
+        <div class="form-group hidden" id="phase${index}SwissRoundGroup">
+          <label class="form-label" for="phase${index}SwissRound">Jumlah Round Swiss</label>
+          <input
+            class="form-input"
+            type="number"
+            id="phase${index}SwissRound"
+            name="phase${index}SwissRound"
+            min="1"
+            placeholder="Contoh: 5"
+          />
+        </div>
+      </div>
+
+      <!-- Status & Link bracket Fase ${index} -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="phaseStatus${index}">Status Fase ${index}</label>
+          <select class="form-select" id="phaseStatus${index}" name="phaseStatus${index}">
+            <option value="">Upcoming</option>
+            <option value="lose">Lose</option>
+            <option value="pass">Pass</option>
+            <option value="win">Win</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="phaseBracket${index}">Link Bracket Fase ${index}</label>
+          <input
+            class="form-input"
+            type="url"
+            id="phaseBracket${index}"
+            name="phaseBracket${index}"
+            placeholder="https://..."
+          />
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPhaseBlocks() {
+  const container = document.getElementById('phaseContainer');
+  if (!container) return;
+
+  let html = '';
+  for (let i = 1; i <= MAX_PHASES; i += 1) {
+    html += createPhaseHtml(i);
+  }
+  container.innerHTML = html;
+}
+
+// Show/hide phase blocks sesuai jumlah fase yang dipilih
+function updatePhaseBlockVisibility(count) {
+  const MAX_PHASES = 4;
+  
+  for (let i = 1; i <= MAX_PHASES; i++) {
+    const block = getPhaseID(i);
+    if (!block) {
+      continue;
+    }
+    const shouldHide = i > count;
+    block.classList.toggle('hidden', shouldHide);
+  }
+}
+
+// Attach listener ke select#phaseCount
+function attachPhaseCountListener() {
+  const phaseCountSelect = document.getElementById('phaseCount');
+  if (!phaseCountSelect) return;
+
+  // Jalankan sekali saat init untuk state awal
+  updatePhaseBlockVisibility(parseInt(phaseCountSelect.value) || 1);
+
+  phaseCountSelect.addEventListener('change', (e) => {
+    const count = parseInt(e.target.value) || 1;
+    updatePhaseBlockVisibility(count);
+  });
+}
+
   function getPhaseElements(phaseIndex) {
     const form = getFormElement();
     return {
@@ -57,7 +229,7 @@
   function attachPhaseFormatListeners(phaseIndex) {
     const { formatRadios } = getPhaseElements(phaseIndex);
     if (!formatRadios || formatRadios.length === 0) return;
-    console.log('Attach listener fase', phaseIndex, formatRadios.length);
+    //console.log('Attach listener fase', phaseIndex, formatRadios.length);
 
     formatRadios.forEach((radio) => {
       radio.addEventListener('change', (event) => {
@@ -195,14 +367,15 @@
       });
   }
 
-  function initAddCompetitionPage() {
-    const formElement = getFormElement();
-    console.log('initAddCompetitionPage, formElement:', !!formElement); // DEBUG
-    if (!formElement) return;
+function initAddCompetitionPage() {
+  const formElement = getFormElement();
+  if (!formElement) return;
 
-    attachAllFormatListeners();
-    formElement.addEventListener('submit', handleSubmit);
-  }
+  renderPhaseBlocks();
+  attachPhaseCountListener();
+  attachAllFormatListeners();
+  formElement.addEventListener('submit', handleSubmit);
+}
 
   document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded addcompetition.js'); // DEBUG
