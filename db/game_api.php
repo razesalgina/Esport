@@ -26,8 +26,8 @@ if ($method === 'GET' && $action === 'list') {
         $games = $stmt->fetchAll();
 
         if (!empty($games)) {
-            $gameIds   = array_column($games, 'id');
-            $inClause  = implode(',', array_fill(0, count($gameIds), '?'));
+            $gameIds  = array_column($games, 'id');
+            $inClause = implode(',', array_fill(0, count($gameIds), '?'));
 
             $mvpStmt = $pdo->prepare(
                 "SELECT gp.game_id, gp.player_name,
@@ -85,7 +85,6 @@ if ($method === 'GET' && $action === 'get') {
             exit;
         }
 
-        // Players
         $pStmt = $pdo->prepare(
             'SELECT role_name, player_name, hero_name, kills, deaths, assists, total_gold
              FROM game_players WHERE game_id = :gid ORDER BY id ASC'
@@ -104,7 +103,9 @@ if ($method === 'GET' && $action === 'get') {
 // ── GET: players list ──────────────────────────
 if ($method === 'GET' && $action === 'players') {
     try {
-        $stmt = $pdo->query('SELECT id, name, primary_role FROM players WHERE is_active = 1 ORDER BY name ASC');
+        $stmt = $pdo->query(
+            'SELECT id, name, primary_role FROM players WHERE is_active = 1 ORDER BY name ASC'
+        );
         echo json_encode(['ok' => true, 'players' => $stmt->fetchAll()]);
     } catch (Throwable $e) {
         http_response_code(500);
@@ -114,13 +115,23 @@ if ($method === 'GET' && $action === 'players') {
 }
 
 // ── GET: heroes list ──────────────────────────
+// Tabel mlbb_heroes memiliki kolom: id, name, created_at
 if ($method === 'GET' && $action === 'heroes') {
     try {
-        $stmt = $pdo->query('SELECT nama_hero FROM mlbb_heroes ORDER BY nama_hero ASC');
-        echo json_encode(['ok' => true, 'heroes' => $stmt->fetchAll(PDO::FETCH_COLUMN)]);
+        // Coba kolom 'name' terlebih dahulu (sesuai screenshot DB)
+        $stmt = $pdo->query('SELECT name FROM mlbb_heroes ORDER BY name ASC');
+        $heroes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        echo json_encode(['ok' => true, 'heroes' => $heroes]);
     } catch (Throwable $e) {
-        http_response_code(500);
-        echo json_encode(['ok' => false, 'message' => 'Gagal mengambil data hero']);
+        // Fallback: coba kolom 'nama_hero' (schema lama)
+        try {
+            $stmt2 = $pdo->query('SELECT nama_hero FROM mlbb_heroes ORDER BY nama_hero ASC');
+            $heroes = $stmt2->fetchAll(PDO::FETCH_COLUMN);
+            echo json_encode(['ok' => true, 'heroes' => $heroes]);
+        } catch (Throwable $e2) {
+            http_response_code(500);
+            echo json_encode(['ok' => false, 'message' => 'Gagal mengambil data hero: ' . $e2->getMessage()]);
+        }
     }
     exit;
 }

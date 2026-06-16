@@ -2,9 +2,15 @@
 (function () {
 
   // ── State ──────────────────────────────────────
-  let allMatches = [];
+  let allMatches     = [];
+  let competitionId  = 0;   // set jika drill-down dari competition
+  let competitionName = ''; // untuk label breadcrumb / header
 
-  // ── Toast ─────────────────────────────────────
+  // ── Helpers ─────────────────────────────────
+  function getParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
   function showToast(message, type) {
     if (window.Esport && typeof window.Esport.showToast === 'function') {
       window.Esport.showToast(message, type);
@@ -12,7 +18,6 @@
   }
 
   // ── Badge helpers ────────────────────────────
-
   function getResult(our, opp, resultFromDb) {
     let r = (resultFromDb || '').toLowerCase();
     if (!r) {
@@ -45,7 +50,6 @@
   }
 
   // ── Delete ──────────────────────────────────
-
   function handleDeleteMatch(id, opponentName) {
     const label = opponentName ? `match vs "${opponentName}"` : `match #${id}`;
     if (!confirm(`Hapus ${label}? Tindakan ini tidak bisa dibatalkan.`)) return;
@@ -66,7 +70,6 @@
   }
 
   // ── Filter ──────────────────────────────────
-
   function getFilters() {
     const val = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
     return {
@@ -82,9 +85,9 @@
     const { searchText, kategori, format, status, result } = getFilters();
     return data.filter((m) => {
       if (searchText && !(m.opponent_name || '').toLowerCase().includes(searchText)) return false;
-      if (kategori   && (m.type   || '').toLowerCase()   !== kategori.toLowerCase())  return false;
-      if (format     && (m.format || '').toUpperCase()   !== format.toUpperCase())     return false;
-      if (status     && (m.status || '').toLowerCase()   !== status.toLowerCase())     return false;
+      if (kategori   && (m.type   || '').toLowerCase()  !== kategori.toLowerCase()) return false;
+      if (format     && (m.format || '').toUpperCase()  !== format.toUpperCase())    return false;
+      if (status     && (m.status || '').toLowerCase()  !== status.toLowerCase())    return false;
       if (result) {
         const r = getResult(m.our_score, m.opponent_score, m.result);
         if (r !== result.toLowerCase()) return false;
@@ -94,8 +97,10 @@
   }
 
   // ── Render ──────────────────────────────────
-
   function renderEmptyState(tbody, isFiltered) {
+    const addLink = competitionId
+      ? `addmatch.html?competition_id=${competitionId}`
+      : 'addmatch.html';
     tbody.innerHTML = `
       <tr><td colspan="8">
         <div class="empty-state">
@@ -108,7 +113,7 @@
           <h3>${isFiltered ? 'Tidak ada hasil' : 'Belum ada match'}</h3>
           <p>${isFiltered ? 'Tidak ada match yang sesuai filter.' : 'Tambahkan match pertama untuk mulai melacak performa tim'}</p>
           ${!isFiltered ? `
-          <a href="addmatch.html" class="btn btn-primary btn-sm">
+          <a href="${addLink}" class="btn btn-primary btn-sm">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Tambah Match
           </a>` : ''}
@@ -120,13 +125,14 @@
     const tbody = document.getElementById('matchBody');
     if (!tbody) return;
 
-    const filtered   = applyFilters(allMatches);
-    const isFiltered = allMatches.length > 0 && filtered.length === 0;
+    // Jika drill-down dari competition, filter hanya match milik competition itu
+    const source   = competitionId
+      ? allMatches.filter((m) => m.competition_id == competitionId)
+      : allMatches;
+    const filtered   = applyFilters(source);
+    const isFiltered = source.length > 0 && filtered.length === 0;
 
-    if (filtered.length === 0) {
-      renderEmptyState(tbody, isFiltered);
-      return;
-    }
+    if (filtered.length === 0) { renderEmptyState(tbody, isFiltered); return; }
 
     tbody.innerHTML = filtered.map((m, i) => {
       const our = m.our_score != null ? m.our_score : 0;
@@ -145,22 +151,17 @@
           <td>${statusBadgeHtml(m.status)}</td>
           <td>
             <a href="editmatch.html?id=${m.id}" class="btn btn-sm btn-secondary">Edit</a>
-            <button class="btn btn-sm btn-danger" data-id="${m.id}" data-name="${safeOpponent}">
-              Hapus
-            </button>
+            <button class="btn btn-sm btn-danger" data-id="${m.id}" data-name="${safeOpponent}">Hapus</button>
           </td>
         </tr>`;
     }).join('');
 
     tbody.querySelectorAll('button[data-id]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        handleDeleteMatch(Number(btn.dataset.id), btn.dataset.name);
-      });
+      btn.addEventListener('click', () => handleDeleteMatch(Number(btn.dataset.id), btn.dataset.name));
     });
   }
 
   // ── Toolbar ────────────────────────────────
-
   function makeSelect(id, placeholder, options) {
     const sel = document.createElement('select');
     sel.id = id;
@@ -178,10 +179,8 @@
     const toolbar = document.createElement('div');
     toolbar.className = 'table-toolbar';
 
-    const left  = document.createElement('div');
-    left.className = 'table-toolbar-left';
-    const right = document.createElement('div');
-    right.className = 'table-toolbar-right';
+    const left  = document.createElement('div'); left.className  = 'table-toolbar-left';
+    const right = document.createElement('div'); right.className = 'table-toolbar-right';
 
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
@@ -210,11 +209,67 @@
     tableWrap.parentElement.insertBefore(toolbar, tableWrap);
   }
 
-  // ── Fetch & init ────────────────────────────
+  // ── Context banner (saat drill-down dari competition) ──
+  function setupCompetitionContext() {
+    if (!competitionId) return;
 
+    // Update breadcrumb: tambah link Competition
+    const breadcrumbCurrent = document.querySelector('.topbar-breadcrumb .current');
+    if (breadcrumbCurrent) {
+      const sep1  = document.createElement('span'); sep1.className = 'sep'; sep1.textContent = '/';
+      const link1 = document.createElement('a');
+      link1.href = 'competition.html';
+      link1.textContent = 'Competition';
+      link1.style.cssText = 'color:var(--primary);text-decoration:none;';
+      const sep2  = document.createElement('span'); sep2.className = 'sep'; sep2.textContent = '/';
+      breadcrumbCurrent.parentElement.insertBefore(sep2, breadcrumbCurrent);
+      breadcrumbCurrent.parentElement.insertBefore(link1, sep2);
+      breadcrumbCurrent.parentElement.insertBefore(sep1, link1);
+      breadcrumbCurrent.textContent = 'Match';
+    }
+
+    // Tampilkan banner filter kompetisi
+    const header = document.querySelector('.page-header');
+    if (header && competitionName) {
+      const banner = document.createElement('div');
+      banner.className = 'competition-context-banner';
+      banner.style.cssText = 'display:flex;align-items:center;gap:.6rem;margin-top:.5rem;padding:.5rem .75rem;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;font-size:.85rem;';
+      banner.innerHTML = `
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;flex-shrink:0">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+        </svg>
+        <span>Filter kompetisi: <strong>${competitionName}</strong></span>
+        <a href="match.html" style="margin-left:auto;font-size:.8rem;color:var(--primary)">Lihat semua match</a>`;
+      header.appendChild(banner);
+    }
+
+    // Tombol Tambah Match bawa competition_id
+    const addMatchBtn = document.querySelector('a[href="addmatch.html"]');
+    if (addMatchBtn) addMatchBtn.href = `addmatch.html?competition_id=${competitionId}`;
+  }
+
+  // ── Fetch competition name ─────────────────────
+  async function fetchCompetitionName(cid) {
+    const apiBase = window.EsportConfig ? window.EsportConfig.apiBase : 'db/';
+    try {
+      const res  = await fetch(`${apiBase}competition_api.php?action=get&id=${cid}`);
+      const json = await res.json().catch(() => null);
+      if (json && json.ok && json.competition) return json.competition.name || '';
+    } catch (_) { /* silent */ }
+    return '';
+  }
+
+  // ── Fetch & init ────────────────────────────
   function loadMatches() {
     const apiBase = window.EsportConfig ? window.EsportConfig.apiBase : 'db/';
-    fetch(`${apiBase}match_api.php?action=list`)
+    // Jika ada competition_id, minta hanya match untuk competition itu; fallback ke semua
+    const url = competitionId
+      ? `${apiBase}match_api.php?action=list&competition_id=${competitionId}`
+      : `${apiBase}match_api.php?action=list`;
+
+    fetch(url)
       .then(async (res) => {
         const json = await res.json().catch(() => null);
         if (!json || !json.ok) throw new Error('Gagal mengambil data match');
@@ -227,8 +282,15 @@
       .catch((err) => showToast(err.message || 'Gagal memuat match.', 'error'));
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    competitionId = parseInt(getParam('competition_id') || '0', 10);
+
+    if (competitionId > 0) {
+      competitionName = await fetchCompetitionName(competitionId);
+    }
+
     setupToolbar();
+    setupCompetitionContext();
     loadMatches();
   });
 

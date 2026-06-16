@@ -13,9 +13,7 @@
 
   function clearTableBody(bodyElement) {
     if (!bodyElement) return;
-    while (bodyElement.firstChild) {
-      bodyElement.removeChild(bodyElement.firstChild);
-    }
+    while (bodyElement.firstChild) bodyElement.removeChild(bodyElement.firstChild);
   }
 
   function showToast(message, type) {
@@ -24,6 +22,7 @@
     }
   }
 
+  // ── Delete ────────────────────────────────────
   function handleDeleteCompetition(id, name) {
     if (!confirm(`Hapus kompetisi "${name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
 
@@ -39,11 +38,10 @@
         showToast(`Kompetisi "${name}" berhasil dihapus.`, 'success');
         initCompetitionPage();
       })
-      .catch((error) => {
-        showToast(error.message || 'Gagal menghapus kompetisi.', 'error');
-      });
+      .catch((err) => showToast(err.message || 'Gagal menghapus kompetisi.', 'error'));
   }
 
+  // ── Row builder ───────────────────────────────
   function createCompetitionRow(competition, index) {
     const row = document.createElement('tr');
 
@@ -51,10 +49,10 @@
     const indexCell = document.createElement('td');
     indexCell.textContent = String(index + 1);
 
-    // Nama (klik untuk edit)
+    // Nama kompetisi → match.html?competition_id=X  (drill-down ke matches)
     const nameCell = document.createElement('td');
     const nameLink = document.createElement('a');
-    nameLink.href = `editcompetition.html?id=${competition.id}`;
+    nameLink.href      = `match.html?competition_id=${competition.id}`;
     nameLink.textContent = competition.name || '-';
     nameLink.className = 'link-primary';
     nameCell.appendChild(nameLink);
@@ -63,14 +61,12 @@
     const teamCountCell = document.createElement('td');
     teamCountCell.textContent = String(competition.team_count || 0);
 
-    // Prizepool (bold)
+    // Prizepool
     const prizepoolCell = document.createElement('td');
     const prizeStrong = document.createElement('strong');
-    if (competition.prizepool) {
-      prizeStrong.textContent = `Rp ${Number(competition.prizepool).toLocaleString('id-ID')}`;
-    } else {
-      prizeStrong.textContent = '-';
-    }
+    prizeStrong.textContent = competition.prizepool
+      ? `Rp ${Number(competition.prizepool).toLocaleString('id-ID')}`
+      : '-';
     prizepoolCell.appendChild(prizeStrong);
 
     // Rank akhir
@@ -79,34 +75,27 @@
 
     // Status badge
     const statusCell = document.createElement('td');
-    const badge = document.createElement('span');
-    const rawStatus = (competition.status || '').toLowerCase();
-    const statusMap = {
-      '': 'badge badge-neutral',
-      upcoming: 'badge badge-yellow',
-      cancel: 'badge badge-red',
-      finished: 'badge badge-green',
-    };
-    badge.className = statusMap[rawStatus] || 'badge badge-neutral';
-    const statusLabelMap = { '': 'Unknown', upcoming: 'Upcoming', cancel: 'Cancel', finished: 'Finished' };
-    badge.textContent = statusLabelMap[rawStatus] || 'Unknown';
+    const badge      = document.createElement('span');
+    const rawStatus  = (competition.status || '').toLowerCase();
+    const statusCss  = { '': 'badge badge-neutral', upcoming: 'badge badge-yellow', cancel: 'badge badge-red', finished: 'badge badge-green' };
+    const statusLbl  = { '': 'Unknown', upcoming: 'Upcoming', cancel: 'Cancel', finished: 'Finished' };
+    badge.className  = statusCss[rawStatus] || 'badge badge-neutral';
+    badge.textContent = statusLbl[rawStatus] || 'Unknown';
     statusCell.appendChild(badge);
 
-    // Aksi: Edit + Hapus
+    // Aksi: Edit (tetap editcompetition) + Hapus
     const actionsCell = document.createElement('td');
     actionsCell.className = 'actions-cell';
 
     const editBtn = document.createElement('a');
-    editBtn.href = `editcompetition.html?id=${competition.id}`;
+    editBtn.href      = `editcompetition.html?id=${competition.id}`;
     editBtn.className = 'btn btn-sm btn-secondary';
     editBtn.textContent = 'Edit';
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn btn-sm btn-danger';
     deleteBtn.textContent = 'Hapus';
-    deleteBtn.addEventListener('click', () =>
-      handleDeleteCompetition(competition.id, competition.name),
-    );
+    deleteBtn.addEventListener('click', () => handleDeleteCompetition(competition.id, competition.name));
 
     actionsCell.appendChild(editBtn);
     actionsCell.appendChild(deleteBtn);
@@ -122,44 +111,29 @@
     return row;
   }
 
-  // -------- Search & Filter --------
-
+  // ── Search & Filter ────────────────────────────
   function getFiltersFromControls(prefix) {
-    const searchInput = document.getElementById(`${prefix}Search`);
-    const statusSelect = document.getElementById(`${prefix}FilterStatus`);
-    const rankSelect = document.getElementById(`${prefix}FilterRank`);
-    const prizeSelect = document.getElementById(`${prefix}FilterPrize`);
-
+    const val = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
     return {
-      searchText: searchInput ? searchInput.value.trim().toLowerCase() : '',
-      status: statusSelect ? statusSelect.value : '',
-      rank: rankSelect ? rankSelect.value : '',
-      prize: prizeSelect ? prizeSelect.value : '',
+      searchText: val(`${prefix}Search`).trim().toLowerCase(),
+      status:     val(`${prefix}FilterStatus`),
+      rank:       val(`${prefix}FilterRank`),
+      prize:      val(`${prefix}FilterPrize`),
     };
   }
 
   function applyFilters(data, prefix) {
     const { searchText, status, rank, prize } = getFiltersFromControls(prefix);
-
     return data.filter((c) => {
-      if (searchText) {
-        const name = (c.name || '').toLowerCase();
-        if (!name.includes(searchText)) return false;
-      }
-      if (status) {
-        const s = (c.status || '').toLowerCase();
-        if (s !== status) return false;
-      }
-      if (rank) {
-        const r = (c.final_rank || '').toLowerCase();
-        if (r !== rank.toLowerCase()) return false;
-      }
+      if (searchText && !(c.name || '').toLowerCase().includes(searchText)) return false;
+      if (status     && (c.status || '').toLowerCase() !== status.toLowerCase())        return false;
+      if (rank       && (c.final_rank || '').toLowerCase() !== rank.toLowerCase())      return false;
       if (prize) {
         const p = Number(c.prizepool || 0);
-        if (prize === 'zero' && p !== 0) return false;
-        if (prize === 'lt10' && !(p > 0 && p < 10_000_000)) return false;
+        if (prize === 'zero'  && p !== 0)                         return false;
+        if (prize === 'lt10'  && !(p > 0 && p < 10_000_000))      return false;
         if (prize === '10to50' && !(p >= 10_000_000 && p <= 50_000_000)) return false;
-        if (prize === 'gt50' && !(p > 50_000_000)) return false;
+        if (prize === 'gt50'  && !(p > 50_000_000))               return false;
       }
       return true;
     });
@@ -171,8 +145,6 @@
 
     clearTableBody(tournamentBody);
     clearTableBody(leagueBody);
-
-    if (!allCompetitions || allCompetitions.length === 0) return;
 
     const tournamentsAll = allCompetitions.filter((c) => c.type === 'tournament');
     const leaguesAll     = allCompetitions.filter((c) => c.type === 'league');
@@ -213,18 +185,15 @@
     }
   }
 
-  // -------- Toolbar --------
-
+  // ── Toolbar ────────────────────────────────────
   function createTableToolbar({ prefix, title, container }) {
     if (!container) return null;
 
     const toolbar = document.createElement('div');
     toolbar.className = 'table-toolbar';
 
-    const left  = document.createElement('div');
-    left.className = 'table-toolbar-left';
-    const right = document.createElement('div');
-    right.className = 'table-toolbar-right';
+    const left  = document.createElement('div'); left.className  = 'table-toolbar-left';
+    const right = document.createElement('div'); right.className = 'table-toolbar-right';
 
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
@@ -267,8 +236,7 @@
     createTableToolbar({ prefix: 'league',     title: 'liga',     container: leagueTableWrap });
   }
 
-  // -------- Fetch & init --------
-
+  // ── Fetch & init ────────────────────────────────
   function fetchCompetitions() {
     const apiBase = window.EsportConfig ? window.EsportConfig.apiBase : 'db/';
     return fetch(`${apiBase}competition_api.php?action=list`)
@@ -277,10 +245,7 @@
         if (!response.ok || !json || !json.ok) throw new Error((json && json.message) || 'Gagal memuat data kompetisi.');
         return json.competitions || [];
       })
-      .catch((error) => {
-        showToast(error.message || 'Gagal memuat kompetisi.', 'error');
-        return [];
-      });
+      .catch((err) => { showToast(err.message || 'Gagal memuat kompetisi.', 'error'); return []; });
   }
 
   function initCompetitionPage() {
