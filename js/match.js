@@ -228,23 +228,6 @@
       breadcrumbCurrent.textContent = 'Match';
     }
 
-    // Tampilkan banner filter kompetisi
-    const header = document.querySelector('.page-header');
-    if (header && competitionName) {
-      const banner = document.createElement('div');
-      banner.className = 'competition-context-banner';
-      banner.style.cssText = 'display:flex;align-items:center;gap:.6rem;margin-top:.5rem;padding:.5rem .75rem;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;font-size:.85rem;';
-      banner.innerHTML = `
-        <svg viewBox="0 0 24 24" style="width:16px;height:16px;flex-shrink:0">
-          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-          <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
-        </svg>
-        <span>Filter kompetisi: <strong>${competitionName}</strong></span>
-        <a href="match.html" style="margin-left:auto;font-size:.8rem;color:var(--primary)">Lihat semua match</a>`;
-      header.appendChild(banner);
-    }
-
     // Tombol Tambah Match bawa competition_id
     const addMatchBtn = document.querySelector('a[href="addmatch.html"]');
     if (addMatchBtn) addMatchBtn.href = `addmatch.html?competition_id=${competitionId}`;
