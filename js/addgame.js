@@ -75,8 +75,7 @@
 
     const opts = pool
       .map((p) => {
-        const roleLabel = p.primary_role ? ` (${p.primary_role})` : '';
-        return `<option value="${p.name}">${p.name}${roleLabel}</option>`;
+        return `<option value="${p.name}">${p.name}</option>`;
       })
       .join('');
 
