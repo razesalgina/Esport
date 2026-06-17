@@ -10,7 +10,6 @@
   ];
 
   // Role mapping: key -> nilai primary_role di DB
-  // Sesuaikan jika enum di DB berbeda
   const ROLE_DB_MAP = {
     jungler:   'jungler',
     roamer:    'roamer',
@@ -22,7 +21,6 @@
   let matchId    = 0;
   let gameNumber = 0;
 
-  // Data master disimpan di sini setelah fetch
   let allPlayers = []; // [{ id, name, primary_role }]
   let allHeroes  = []; // ['Hero A', 'Hero B', ...]
 
@@ -50,108 +48,95 @@
   // PLAYER DROPDOWN — filter by role
   // ═══════════════════════════════════════════════════════
 
-  /**
-   * Render ulang dropdown pemain pada sebuah card
-   * berdasarkan roleKey yang sedang aktif.
-   * Nilai yang sudah dipilih sebelumnya dipertahankan jika
-   * masih ada dalam daftar yang difilter.
-   */
   function refreshPlayerDropdown(roleKey) {
     const card = document.getElementById(`card-${roleKey}`);
     if (!card) return;
-
-    const sel    = card.querySelector('.select-player');
+    const sel = card.querySelector('.select-player');
     if (!sel) return;
 
-    const prevVal = sel.value; // simpan pilihan lama
+    const prevVal = sel.value;
     const dbRole  = ROLE_DB_MAP[roleKey] || roleKey;
 
-    // Filter: tampilkan semua jika tidak ada yang cocok,
-    // tapi prioritaskan yang sesuai role.
     const filtered = allPlayers.filter(
       (p) => (p.primary_role || '').toLowerCase() === dbRole.toLowerCase()
     );
     const pool = filtered.length > 0 ? filtered : allPlayers;
 
-    const opts = pool
-      .map((p) => {
-        return `<option value="${p.name}">${p.name}</option>`;
-      })
-      .join('');
+    sel.innerHTML = `<option value="" disabled>Pilih Pemain</option>` +
+      pool.map((p) => `<option value="${p.name}">${p.name}</option>`).join('');
 
-    sel.innerHTML = `<option value="" disabled>Pilih Pemain</option>${opts}`;
-
-    // Kembalikan pilihan lama jika masih tersedia
-    if (prevVal && pool.some((p) => p.name === prevVal)) {
-      sel.value = prevVal;
-    } else {
-      sel.value = '';
-    }
+    sel.value = (prevVal && pool.some((p) => p.name === prevVal)) ? prevVal : '';
   }
 
-  /** Refresh semua card sekaligus (dipanggil saat data selesai load) */
   function refreshAllPlayerDropdowns() {
     ROLES.forEach(({ key }) => refreshPlayerDropdown(key));
   }
 
   // ═══════════════════════════════════════════════════════
-  // HERO PICKER — grid + search (pengganti <select>)
+  // HERO PICKER — searchable grid, pakai token style.css
   // ═══════════════════════════════════════════════════════
 
   /**
-   * Buat elemen hero picker kustom untuk sebuah card.
-   * Menggantikan <select class="select-hero"> dengan UI:
-   *   [ input readonly (display) ] [ tombol pilih ]
-   *   [ dropdown panel: search + grid hero ]
-   *
-   * Data terikat ke hidden input .hero-value yang
-   * digunakan saat koleksi data form.
+   * Bangun hero picker yang visually identik dengan .form-select
+   * (border, radius, padding, warna semua dari token style.css).
+   * Hidden input .hero-value.select-hero menyimpan nilai terpilih.
    */
   function buildHeroPicker(card, roleKey) {
     const oldSel = card.querySelector('.select-hero');
     if (!oldSel) return;
 
-    // Buat wrapper
+    // SVG chevron — sama persis ikon di background-image .form-select
+    const chevronSVG = `<svg class="hero-picker-arrow" viewBox="0 0 24 24" aria-hidden="true"
+      fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>`;
+
+    // SVG search icon untuk search input
+    const searchSVG = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"
+      fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round"
+      style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--color-text-faint);pointer-events:none">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>`;
+
     const wrapper = document.createElement('div');
-    wrapper.className  = 'hero-picker-wrap';
+    wrapper.className   = 'hero-picker-wrap';
     wrapper.dataset.role = roleKey;
 
+    // Trigger identik dengan .form-select (div karena tidak submit form)
     wrapper.innerHTML = `
-      <div class="hero-picker-trigger">
+      <div class="hero-picker-trigger" role="combobox" tabindex="0"
+           aria-haspopup="listbox" aria-expanded="false">
         <span class="hero-picker-display">Pilih Hero</span>
-        <button type="button" class="hero-picker-btn" aria-haspopup="listbox" aria-expanded="false">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </button>
+        ${chevronSVG}
         <input type="hidden" class="hero-value select-hero" name="heroName" value="">
       </div>
       <div class="hero-picker-panel" hidden>
-        <div class="hero-picker-search-wrap">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input type="text" class="hero-picker-search" placeholder="Cari hero..." autocomplete="off">
+        <div style="position:relative">
+          ${searchSVG}
+          <input type="text" class="hero-picker-search"
+                 placeholder="Cari hero..."
+                 autocomplete="off"
+                 style="padding-left:32px">
         </div>
-        <div class="hero-picker-grid"></div>
+        <div class="hero-picker-grid" role="listbox"></div>
         <div class="hero-picker-empty" hidden>Hero tidak ditemukan</div>
       </div>`;
 
+    // Bawa spacing dari select aslinya
+    wrapper.className += ` ${oldSel.className.replace('form-select', '').replace('select-hero', '').trim()}`;
     oldSel.replaceWith(wrapper);
+
     renderHeroGrid(wrapper, '');
     attachHeroPickerEvents(wrapper);
   }
 
-  /** Render grid item sesuai query pencarian */
   function renderHeroGrid(wrapper, query) {
     const grid  = wrapper.querySelector('.hero-picker-grid');
     const empty = wrapper.querySelector('.hero-picker-empty');
     const q     = (query || '').toLowerCase().trim();
-    const list  = q
-      ? allHeroes.filter((h) => h.toLowerCase().includes(q))
-      : allHeroes;
+    const list  = q ? allHeroes.filter((h) => h.toLowerCase().includes(q)) : allHeroes;
 
     if (list.length === 0) {
       grid.innerHTML = '';
@@ -164,20 +149,20 @@
     grid.innerHTML = list
       .map((h) => {
         const active = h === currentVal ? ' is-active' : '';
-        return `<button type="button" class="hero-item${active}" data-hero="${h}">${h}</button>`;
+        return `<button type="button" class="hero-item${active}" data-hero="${h}" role="option"
+          aria-selected="${h === currentVal}">${h}</button>`;
       })
       .join('');
   }
 
-  /** Pasang semua event listener ke sebuah picker instance */
   function attachHeroPickerEvents(wrapper) {
-    const trigger  = wrapper.querySelector('.hero-picker-btn');
+    const trigger  = wrapper.querySelector('.hero-picker-trigger');
     const panel    = wrapper.querySelector('.hero-picker-panel');
     const search   = wrapper.querySelector('.hero-picker-search');
     const display  = wrapper.querySelector('.hero-picker-display');
     const hiddenIn = wrapper.querySelector('.hero-value');
 
-    // Buka / tutup panel
+    // Buka / tutup
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
       const isOpen = !panel.hidden;
@@ -191,39 +176,38 @@
       }
     });
 
-    // Juga bisa klik area display
-    display.addEventListener('click', () => trigger.click());
+    // Keyboard: Enter/Space membuka, Escape menutup
+    trigger.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trigger.click(); }
+      if (e.key === 'Escape') closeAllHeroPanels();
+    });
 
-    // Search
     search.addEventListener('input', () => renderHeroGrid(wrapper, search.value));
     search.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeAllHeroPanels();
     });
 
-    // Pilih hero dari grid (event delegation)
+    // Pilih hero via event delegation
     panel.addEventListener('click', (e) => {
       const btn = e.target.closest('.hero-item');
       if (!btn) return;
       const hero = btn.dataset.hero;
-      hiddenIn.value   = hero;
+      hiddenIn.value = hero;
       display.textContent = hero;
-      display.classList.toggle('has-value', !!hero);
+      display.classList.add('has-value');
       closeAllHeroPanels();
-      // Trigger change untuk updateRoleProgress
       hiddenIn.dispatchEvent(new Event('change', { bubbles: true }));
     });
   }
 
-  /** Tutup semua panel hero picker yang sedang terbuka */
   function closeAllHeroPanels() {
     document.querySelectorAll('.hero-picker-wrap.is-open').forEach((w) => {
       w.querySelector('.hero-picker-panel').hidden = true;
-      w.querySelector('.hero-picker-btn').setAttribute('aria-expanded', 'false');
+      w.querySelector('.hero-picker-trigger').setAttribute('aria-expanded', 'false');
       w.classList.remove('is-open');
     });
   }
 
-  // Tutup panel saat klik di luar
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.hero-picker-wrap')) closeAllHeroPanels();
   });
@@ -243,10 +227,8 @@
       allPlayers = (pJson && pJson.ok) ? pJson.players : [];
       allHeroes  = (hJson && hJson.ok) ? hJson.heroes  : [];
 
-      // Player dropdowns — setiap card diisi sesuai role-nya
       refreshAllPlayerDropdowns();
 
-      // Hero pickers — bangun UI kustom untuk setiap card
       ROLES.forEach(({ key }) => {
         const card = document.getElementById(`card-${key}`);
         if (card) buildHeroPicker(card, key);
@@ -282,9 +264,7 @@
       const card = document.getElementById(`card-${key}`);
       if (!card) return;
       const player  = card.querySelector('.select-player');
-      const heroVal = card.querySelector('.hero-value');
-      // Fallback ke .select-hero jika picker belum dibangun
-      const heroEl  = heroVal || card.querySelector('.select-hero');
+      const heroEl  = card.querySelector('.hero-value') || card.querySelector('.select-hero');
       const kills   = card.querySelector('.input-kills');
       const deaths  = card.querySelector('.input-deaths');
       const assists = card.querySelector('.input-assists');
@@ -310,12 +290,10 @@
   }
 
   function attachRoleTabListeners() {
-    const radios = document.querySelectorAll('input[name="activeRole"]');
-    radios.forEach((radio) => {
+    document.querySelectorAll('input[name="activeRole"]').forEach((radio) => {
       radio.addEventListener('change', () => {
         const roleKey = radio.value;
         switchRole(roleKey);
-        // Re-filter player dropdown sesuai role yang baru aktif
         refreshPlayerDropdown(roleKey);
         updateRoleProgress();
       });
@@ -358,16 +336,15 @@
   function validateStep2() {
     clearErrors();
     for (const { key, label } of ROLES) {
-      const card    = document.getElementById(`card-${key}`);
+      const card     = document.getElementById(`card-${key}`);
       if (!card) continue;
-      const player  = card.querySelector('.select-player');
-      // Prioritas: hero-value (picker), fallback ke select-hero biasa
-      const heroEl  = card.querySelector('.hero-value') || card.querySelector('.select-hero');
-      const heroWrap = card.querySelector('.hero-picker-trigger');
-      const kills   = card.querySelector('.input-kills');
-      const deaths  = card.querySelector('.input-deaths');
-      const assists = card.querySelector('.input-assists');
-      const gold    = card.querySelector('.input-gold');
+      const player   = card.querySelector('.select-player');
+      const heroEl   = card.querySelector('.hero-value') || card.querySelector('.select-hero');
+      const heroTrig = card.querySelector('.hero-picker-trigger');
+      const kills    = card.querySelector('.input-kills');
+      const deaths   = card.querySelector('.input-deaths');
+      const assists  = card.querySelector('.input-assists');
+      const gold     = card.querySelector('.input-gold');
 
       const switchToRole = () => {
         switchRole(key);
@@ -381,7 +358,7 @@
       }
       if (!heroEl || !heroEl.value) {
         switchToRole();
-        if (heroWrap) heroWrap.classList.add('field-error');
+        if (heroTrig) heroTrig.classList.add('field-error');
         return { valid: false, message: `Pilih hero untuk ${label}.` };
       }
       if (!kills || kills.value.trim() === '') {
@@ -421,8 +398,8 @@
 
   function getPlayerStats() {
     return ROLES.map(({ key }) => {
-      const card    = document.getElementById(`card-${key}`);
-      const heroEl  = card?.querySelector('.hero-value') || card?.querySelector('.select-hero');
+      const card   = document.getElementById(`card-${key}`);
+      const heroEl = card?.querySelector('.hero-value') || card?.querySelector('.select-hero');
       return {
         roleName:   key,
         playerName: card?.querySelector('.select-player')?.value || '',
