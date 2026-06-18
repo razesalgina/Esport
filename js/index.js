@@ -27,7 +27,7 @@
     if (el) el.innerHTML = html;
   }
 
-  // ── KPI ───────────────────────────────────
+  // ── KPI ──────────────────────────────────────
   function renderKpi(kpi) {
     setText('kpiKompetisi', kpi.competitions ?? '—');
     setText('kpiMatch',     kpi.matches      ?? '—');
@@ -35,7 +35,7 @@
     setText('kpiWinrate',   kpi.winrate != null ? `${kpi.winrate}%` : '—');
   }
 
-  // ── Match Summary ───────────────────────────
+  // ── Match Summary ─────────────────────────────
   function renderMatchSummary(matches) {
     if (!matches || matches.length === 0) {
       setHTML('matchSummary', `
@@ -54,14 +54,13 @@
       const date = m.match_date
         ? new Date(m.match_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
         : '—';
-      const type = (m.type || '').toLowerCase();
-      const typeBadge = type === 'scrim'
-        ? 'badge-neutral'
-        : type === 'ranked' ? 'badge-neutral' : 'badge-yellow';
+      const type     = (m.type || '').toLowerCase();
+      const typeLabel = (m.type || '—').toUpperCase();  // FIX: guard null crash
+      const typeBadge = type === 'scrim' || type === 'ranked' ? 'badge-neutral' : 'badge-yellow';
       return `
         <tr>
           <td><a href="game.html?match_id=${m.id}" class="link-primary"><strong>${m.opponent_name || '—'}</strong></a></td>
-          <td><span class="badge ${typeBadge}">${m.type.toUpperCase() || '—'}</span></td>
+          <td><span class="badge ${typeBadge}">${typeLabel}</span></td>
           <td>${score}</td>
           <td><small class="text-faint">${date}</small></td>
         </tr>`;
@@ -73,7 +72,9 @@
       </table>`);
   }
 
-  // ── Team Analysis ───────────────────────────
+  // ── Team Analysis ─────────────────────────────
+  // Menggunakan s.player_name — key ini dipertahankan di dashboard_api.php
+  // meski skema DB kini pakai player_id (JOIN players → p.name AS player_name).
   function renderTeamAnalysis(stats) {
     if (!stats || stats.length === 0) {
       setHTML('teamAnalysis', `
@@ -88,10 +89,11 @@
       const roleKey  = (s.primary_role || '').toLowerCase();
       const roleLbl  = ROLE_LABEL[roleKey] || s.primary_role || '—';
       const roleCls  = ROLE_BADGE[roleKey] || 'badge-neutral';
-      const kdaColor = parseFloat(s.avg_kda) >= 3 ? 'badge-green' : parseFloat(s.avg_kda) >= 2 ? 'badge-yellow' : 'badge-red';
+      const kdaVal   = parseFloat(s.avg_kda);
+      const kdaColor = kdaVal >= 3 ? 'badge-green' : kdaVal >= 2 ? 'badge-yellow' : 'badge-red';
       return `
         <tr>
-          <td><strong>${s.player_name}</strong></td>
+          <td><strong>${s.player_name || '—'}</strong></td>
           <td><span class="badge ${roleCls}">${roleLbl}</span></td>
           <td><span class="badge badge-neutral">${s.games}G</span></td>
           <td>${s.total_kills}/${s.total_deaths}/${s.total_assists}</td>
@@ -118,8 +120,8 @@
     }
     const maxPick = Math.max(...heroes.map((h) => h.picks));
     const rows = heroes.map((h) => {
-      const wr  = h.picks > 0 ? Math.round(h.hero_wins / h.picks * 100) : 0;
-      const pct = Math.round(h.picks / maxPick * 100);
+      const wr      = h.picks > 0 ? Math.round(h.hero_wins / h.picks * 100) : 0;
+      const pct     = Math.round(h.picks / maxPick * 100);
       const wrColor = wr >= 60 ? 'badge-green' : wr >= 50 ? 'badge-yellow' : 'badge-red';
       return `
         <div style="margin-bottom:.75rem">
@@ -138,7 +140,7 @@
     setHTML('heroPicks', `<div style="padding:.25rem 0">${rows}</div>`);
   }
 
-  // ── Competition Overview ──────────────────────
+  // ── Competition Overview ────────────────────────
   function renderCompOverview(statusMap) {
     const total = Object.values(statusMap).reduce((a, b) => a + b, 0);
     if (total === 0) {
@@ -154,7 +156,7 @@
     const statuses = [
       { key: 'upcoming', label: 'Upcoming', cls: 'badge-yellow' },
       { key: 'finished', label: 'Finished', cls: 'badge-green' },
-      { key: 'cancel',   label: 'Cancel',   cls: 'badge-red' },
+      { key: 'cancel',   label: 'Cancel',   cls: 'badge-red'   },
     ];
     const rows = statuses.map((s) => {
       const cnt = statusMap[s.key] || 0;
@@ -172,7 +174,7 @@
     setHTML('compOverview', `<div style="padding:.25rem 0">${rows}<div class="text-faint" style="margin-top:.5rem;font-size:.8rem">Total: ${total} kompetisi</div></div>`);
   }
 
-  // ── Load all ─────────────────────────────────
+  // ── Load all ──────────────────────────────────
   function loadDashboard() {
     fetch(`${apiBase()}dashboard_api.php`)
       .then(async (res) => {
@@ -187,7 +189,10 @@
         renderHeroPicks(data.hero_picks);
         renderCompOverview(data.comp_status);
 
-        const now = new Date().toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        const now = new Date().toLocaleString('id-ID', {
+          day: '2-digit', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit',
+        });
         setText('lastUpdated', `Terakhir diperbarui: ${now}`);
       })
       .catch((err) => {
