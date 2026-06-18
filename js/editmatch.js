@@ -122,7 +122,7 @@
       loadCompetitions(match.competition_id);
     }
 
-    const label = match.opponent_name ? `Edit Match vs ${match.opponent_name}` : 'Edit Match';
+    const label = match.opponent_name ? `${match.opponent_name}` : 'Edit Match';
     const breadcrumb = document.getElementById('breadcrumbMatchLabel');
     const pageTitle  = document.getElementById('pageTitle');
     if (breadcrumb) breadcrumb.textContent = label;

@@ -138,10 +138,10 @@
   function updateMatchMeta(match) {
     const opponentName = match.opponent_name || 'Match';
 
-    document.title = `Game vs ${opponentName} — Esport`;
+    document.title = `${opponentName} — Esport`;
 
     const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle) pageTitle.textContent = `Game vs ${opponentName}`;
+    if (pageTitle) pageTitle.textContent = `${opponentName}`;
 
     const pageSub = document.getElementById('pageSub');
     if (pageSub) pageSub.textContent = `Format: ${match.format || '-'}  |  Lihat semua game dalam match ini`;
