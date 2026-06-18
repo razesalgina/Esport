@@ -94,8 +94,9 @@
 
     if (type === 'tournament' || type === 'league') {
       if (eventGroup) eventGroup.classList.remove('hidden');
-      // Muat daftar kompetisi; jika ada lockedCompetitionId maka option-nya di-preselect
-      loadUpcomingCompetitions(lockedCompetitionId);
+      // Teruskan type ke loadUpcomingCompetitions agar hanya kompetisi
+      // dengan type yang sama (tournament/league) yang tampil
+      loadUpcomingCompetitions(lockedCompetitionId, type);
       if (formatGroup)   formatGroup.classList.remove('hidden');
       if (opponentGroup) opponentGroup.classList.remove('hidden');
       if (datetimeGroup) datetimeGroup.classList.remove('hidden');
@@ -191,10 +192,10 @@
       .then((savedMatch) => {
         showToast('Match berhasil disimpan!', 'success');
         // Redirect: utamakan competition_id dari match yang baru disimpan,
-        // fallback ke lockedCompetitionId, lalu ke tipe-based redirect.
-        const savedCompId = savedMatch && savedMatch.competition_id
+        // fallback ke competitionId form, lalu lockedCompetitionId, lalu tipe-based.
+        const savedCompId = (savedMatch && savedMatch.competition_id)
           ? savedMatch.competition_id
-          : competitionId;
+          : competitionId || lockedCompetitionId || null;
 
         let redirect;
         if (savedCompId) {
@@ -208,11 +209,15 @@
   }
 
   // ── Load competitions ────────────────────────────
-  // selectedId: jika > 0, option dengan id ini akan di-set selected
-  function loadUpcomingCompetitions(selectedId) {
+  // selectedId  : jika > 0, option dengan id ini akan di-set selected
+  // filterType  : 'tournament' | 'league' — hanya tampilkan kompetisi dengan type ini
+  function loadUpcomingCompetitions(selectedId, filterType) {
     const select = document.getElementById('eventSelect');
     if (!select) return;
-    select.innerHTML = '<option value="">Pilih Tournament/League</option>';
+
+    // Placeholder dinamis sesuai tipe radio yang aktif
+    const label = filterType === 'league' ? 'Pilih League' : 'Pilih Tournament';
+    select.innerHTML = `<option value="">${label}</option>`;
 
     fetch(`${apiBase()}competition_api.php?action=list`)
       .then(async (res) => {
@@ -223,14 +228,15 @@
       .then((competitions) => {
         competitions
           .filter((c) => {
-            const t = (c.type || '').toLowerCase();
+            const t = (c.type   || '').toLowerCase();
             const s = (c.status || '').toLowerCase();
-            return (t === 'tournament' || t === 'league') && s === 'upcoming';
+            // Hanya tampilkan kompetisi upcoming dengan type sama persis
+            return t === filterType && s === 'upcoming';
           })
           .forEach((c) => {
-            const opt        = document.createElement('option');
-            opt.value        = c.id;
-            opt.textContent  = `${c.name}`;
+            const opt       = document.createElement('option');
+            opt.value       = c.id;
+            opt.textContent = c.name;
             // Tandai selected jika cocok dengan competition_id dari URL
             if (selectedId && Number(c.id) === Number(selectedId)) {
               opt.selected = true;
@@ -246,15 +252,15 @@
   // Jika URL mengandung ?competition_id=X:
   //   1. Set lockedCompetitionId (dipakai backHref & updateNavLinks)
   //   2. Update breadcrumb & backBtn ke match.html?competition_id=X
-  //   3. Pre-select & kunci radio sesuai tipe competition (tournament/league)
-  //   4. Trigger updateFormVisibility → memanggil loadUpcomingCompetitions(selectedId)
+  //   3. Pre-select radio sesuai tipe competition (tournament/league)
+  //   4. Trigger updateFormVisibility → memanggil loadUpcomingCompetitions(selectedId, preType)
   async function setupCompetitionContext() {
     const cid = parseInt(getParam('competition_id') || '0', 10);
     if (!cid) return;
 
     lockedCompetitionId = cid;
 
-    // Update breadcrumb & tombol sebelum fetch selesai (pakai placeholder)
+    // Update breadcrumb & tombol sebelum fetch selesai
     const { breadcrumbParent, backBtn, cancelBtn } = getElements();
     const href = `match.html?competition_id=${cid}`;
     if (breadcrumbParent) breadcrumbParent.textContent = 'Match';
@@ -276,7 +282,7 @@
     const matchingRadio = document.querySelector(`input[name="type"][value="${preType}"]`);
     if (matchingRadio) matchingRadio.checked = true;
 
-    // Trigger form visibility → ini memanggil loadUpcomingCompetitions(lockedCompetitionId)
+    // Trigger form visibility → memanggil loadUpcomingCompetitions(lockedCompetitionId, preType)
     updateFormVisibility(preType);
   }
 
