@@ -62,7 +62,6 @@
   }
 
   // ── Player dropdown ─────────────────────────
-  // FIX: value = p.id (integer FK) — seragam dengan addgame.js
   function refreshPlayerDropdown(roleKey, selectedId = null) {
     const card = document.getElementById(`card-${roleKey}`);
     if (!card) return;
@@ -168,28 +167,22 @@
     setVal('gameDurationSec', game.duration_seconds);
 
     // Fill tahap 2 per-role
-    // FIX: match menggunakan player_role (bukan role_name) — seragam dengan game.js
     ROLES.forEach(({ key }) => {
       const existing = (game.players || []).find(
         (p) => (p.player_role || '').toLowerCase().replace(/\s/g, '') === key
       );
       if (!existing) return;
 
-      // FIX: pre-fill dropdown by player_id (integer FK)
       refreshPlayerDropdown(key, existing.player_id || null);
-
-      // Hero hidden input + preview
       setHeroValue(key, existing.hero_name || '');
 
-      // Stats
       const card = document.getElementById(`card-${key}`);
       if (!card) return;
       const fill = (cls, val) => { const el = card.querySelector(cls); if (el) el.value = val ?? ''; };
       fill('.input-kills',   existing.kills);
       fill('.input-deaths',  existing.deaths);
       fill('.input-assists', existing.assists);
-      // FIX: isi input-kda — field baru yang ditambahkan di HTML
-      fill('.input-kda',     existing.kda    ?? parseFloat(
+      fill('.input-kda',     existing.kda ?? parseFloat(
         ((Number(existing.kills ?? 0) + Number(existing.assists ?? 0)) /
           Math.max(Number(existing.deaths ?? 0), 1)).toFixed(2)
       ));
@@ -289,7 +282,6 @@
     };
   }
 
-  // FIX: kirim playerId (integer FK) + kda — seragam dengan addgame.js
   function getPlayerStats() {
     return ROLES.map(({ key }) => {
       const card = document.getElementById(`card-${key}`);
@@ -348,10 +340,15 @@
 
   // ── Init ─────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-    gameId  = parseInt(getParam('game_id')  || '0', 10);
+    // FIX Bug 1: baca param 'id' ATAU 'game_id' — game.html biasanya link ke editgame.html?id=X
+    const rawId = getParam('id') || getParam('game_id') || '0';
+    gameId  = parseInt(rawId, 10);
     matchId = parseInt(getParam('match_id') || '0', 10);
 
-    if (gameId <= 0) showToast('game_id tidak ditemukan di URL.', 'error');
+    if (gameId <= 0) {
+      showToast('game_id tidak ditemukan di URL. Pastikan URL mengandung ?id=X', 'error');
+      return; // hentikan eksekusi agar tidak fetch dengan id=0
+    }
 
     attachRoleTabListeners();
 

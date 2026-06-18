@@ -200,8 +200,11 @@
             <select class="form-select select-player" required>
               <option value="" disabled selected>Pilih Pemain</option>
             </select>
-            <div class="hero-picker-wrapper field-spacer-sm">
-              <button type="button" class="btn btn-secondary open-hero-picker" data-target="hero_jungler">
+            <!-- FIX Bug 2: tambah data-picker-input & data-picker-label agar hero-picker.js bisa init -->
+            <div class="hero-picker-wrapper field-spacer-sm"
+                 data-picker-input="hero_jungler"
+                 data-picker-label="preview_hero_jungler">
+              <button type="button" class="btn btn-secondary open-hero-picker">
                 Pilih Hero
               </button>
               <span class="hero-picker-preview" id="preview_hero_jungler">—</span>
@@ -224,8 +227,10 @@
             <select class="form-select select-player" required>
               <option value="" disabled selected>Pilih Pemain</option>
             </select>
-            <div class="hero-picker-wrapper field-spacer-sm">
-              <button type="button" class="btn btn-secondary open-hero-picker" data-target="hero_roamer">
+            <div class="hero-picker-wrapper field-spacer-sm"
+                 data-picker-input="hero_roamer"
+                 data-picker-label="preview_hero_roamer">
+              <button type="button" class="btn btn-secondary open-hero-picker">
                 Pilih Hero
               </button>
               <span class="hero-picker-preview" id="preview_hero_roamer">—</span>
@@ -248,8 +253,10 @@
             <select class="form-select select-player" required>
               <option value="" disabled selected>Pilih Pemain</option>
             </select>
-            <div class="hero-picker-wrapper field-spacer-sm">
-              <button type="button" class="btn btn-secondary open-hero-picker" data-target="hero_midlaner">
+            <div class="hero-picker-wrapper field-spacer-sm"
+                 data-picker-input="hero_midlaner"
+                 data-picker-label="preview_hero_midlaner">
+              <button type="button" class="btn btn-secondary open-hero-picker">
                 Pilih Hero
               </button>
               <span class="hero-picker-preview" id="preview_hero_midlaner">—</span>
@@ -272,8 +279,10 @@
             <select class="form-select select-player" required>
               <option value="" disabled selected>Pilih Pemain</option>
             </select>
-            <div class="hero-picker-wrapper field-spacer-sm">
-              <button type="button" class="btn btn-secondary open-hero-picker" data-target="hero_explaner">
+            <div class="hero-picker-wrapper field-spacer-sm"
+                 data-picker-input="hero_explaner"
+                 data-picker-label="preview_hero_explaner">
+              <button type="button" class="btn btn-secondary open-hero-picker">
                 Pilih Hero
               </button>
               <span class="hero-picker-preview" id="preview_hero_explaner">—</span>
@@ -296,8 +305,10 @@
             <select class="form-select select-player" required>
               <option value="" disabled selected>Pilih Pemain</option>
             </select>
-            <div class="hero-picker-wrapper field-spacer-sm">
-              <button type="button" class="btn btn-secondary open-hero-picker" data-target="hero_goldlaner">
+            <div class="hero-picker-wrapper field-spacer-sm"
+                 data-picker-input="hero_goldlaner"
+                 data-picker-label="preview_hero_goldlaner">
+              <button type="button" class="btn btn-secondary open-hero-picker">
                 Pilih Hero
               </button>
               <span class="hero-picker-preview" id="preview_hero_goldlaner">—</span>
