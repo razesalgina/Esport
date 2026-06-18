@@ -99,7 +99,7 @@
             <line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
         </button>
-        <!-- Breadcrumb dinamis: diupdate JS sesuai tipe yang dipilih -->
+        <!-- Breadcrumb dinamis: diupdate JS sesuai konteks -->
         <span id="breadcrumbParent">Match</span>
         <span class="sep">/</span>
         <span class="current">Tambah Match</span>
@@ -112,7 +112,7 @@
           <h1 class="page-title">Tambah Match</h1>
           <p class="page-sub">Catat pertandingan atau sesi latihan baru</p>
         </div>
-        <!-- Tombol kembali: href diupdate JS sesuai tipe -->
+        <!-- Tombol kembali: href diupdate JS sesuai konteks -->
         <a href="match.html" class="btn btn-secondary" id="backBtn">
           <svg viewBox="0 0 24 24">
             <polyline points="15 18 9 12 15 6"/>
@@ -127,9 +127,9 @@
             <div class="form-section-title">Detail Match</div>
 
             <!-- Kategori -->
-            <div class="form-group">
+            <div class="form-group" id="typeGroup">
               <label class="form-label">Kategori Match</label>
-              <div class="radio-group">
+              <div class="radio-group" id="typeRadioGroup">
                 <label class="radio-item">
                   <input type="radio" name="type" value="tournament"/>
                   <span>Tournament</span>
@@ -149,12 +149,23 @@
               </div>
             </div>
 
-            <!-- Event (Tournament / League) -->
+            <!-- Event (Tournament / League) — MODE NORMAL: select -->
             <div class="form-group hidden" id="eventGroup">
               <label class="form-label" for="eventSelect">Pilih Event</label>
               <select class="form-select" id="eventSelect" name="event">
                 <option value="">Pilih Tournament/League</option>
               </select>
+            </div>
+
+            <!--
+              Event — MODE READONLY (drill-down dari competition.html)
+              Ditampilkan HANYA jika ada competition_id di URL.
+              Hidden input di dalamnya membawa nilai competition_id ke FormData.
+            -->
+            <div class="form-group hidden" id="eventReadonlyGroup">
+              <label class="form-label">Event</label>
+              <div class="form-input form-input-readonly" id="eventReadonlyDisplay">—</div>
+              <input type="hidden" id="eventHidden" name="event" value=""/>
             </div>
 
             <!-- Format (Tournament / League / Scrim) -->
