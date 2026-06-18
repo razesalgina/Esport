@@ -24,6 +24,15 @@
   let matchId    = 0;
   let allPlayers = []; // [{ id, name, primary_role }]
 
+  // FIX Bug A: simpan selectedPlayerId per-role agar tidak hilang saat ganti tab
+  const selectedPlayerIds = {
+    jungler:   null,
+    roamer:    null,
+    midlaner:  null,
+    explaner:  null,
+    goldlaner: null,
+  };
+
   const apiBase = () => window.EsportConfig ? window.EsportConfig.apiBase : 'db/';
 
   function showToast(msg, type) {
@@ -56,13 +65,14 @@
     const hiddenEl  = document.getElementById(`hero_${roleKey}`);
     const previewEl = document.getElementById(`preview_hero_${roleKey}`);
     if (hiddenEl)  hiddenEl.value        = heroName;
-    if (previewEl) previewEl.textContent = heroName || '—';
-    // Dispatch 'change' agar updateRoleProgress terpicu
+    if (previewEl) previewEl.textContent = heroName || '\u2014';
     hiddenEl?.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   // ── Player dropdown ─────────────────────────
-  function refreshPlayerDropdown(roleKey, selectedId = null) {
+  // FIX Bug A: selalu gunakan selectedPlayerIds[roleKey] sebagai selectedId,
+  // sehingga pilihan tidak hilang saat user kembali ke tab role ini.
+  function refreshPlayerDropdown(roleKey) {
     const card = document.getElementById(`card-${roleKey}`);
     if (!card) return;
     const sel = card.querySelector('.select-player');
@@ -72,14 +82,34 @@
     const filtered = allPlayers.filter(
       (p) => (p.primary_role || '').toLowerCase() === dbRole.toLowerCase()
     );
-    const pool = filtered.length > 0 ? filtered : allPlayers;
+    const pool       = filtered.length > 0 ? filtered : allPlayers;
+    const selectedId = selectedPlayerIds[roleKey];
 
     sel.innerHTML = `<option value="" disabled>Pilih Pemain</option>` +
       pool.map((p) =>
         `<option value="${p.id}" ${String(p.id) === String(selectedId) ? 'selected' : ''}>${p.name}</option>`
       ).join('');
 
-    if (!selectedId || !pool.some((p) => String(p.id) === String(selectedId))) sel.value = '';
+    // Pastikan value DOM selaras dengan state
+    if (selectedId && pool.some((p) => String(p.id) === String(selectedId))) {
+      sel.value = String(selectedId);
+    } else {
+      sel.value = '';
+    }
+  }
+
+  // Simpan pilihan ke state setiap kali user mengubah dropdown
+  function attachDropdownStateListeners() {
+    ROLES.forEach(({ key }) => {
+      const card = document.getElementById(`card-${key}`);
+      if (!card) return;
+      const sel = card.querySelector('.select-player');
+      if (!sel) return;
+      sel.addEventListener('change', () => {
+        selectedPlayerIds[key] = sel.value || null;
+        updateRoleProgress();
+      });
+    });
   }
 
   function refreshAllPlayerDropdowns() {
@@ -124,6 +154,7 @@
     document.querySelectorAll('input[name="activeRole"]').forEach((radio) => {
       radio.addEventListener('change', () => {
         switchRole(radio.value);
+        // FIX Bug A: refresh dropdown DENGAN state, bukan reset tanpa selectedId
         refreshPlayerDropdown(radio.value);
         updateRoleProgress();
       });
@@ -153,7 +184,6 @@
     matchId = game.match_id;
     updateNavLinks(matchId);
 
-    // Fill tahap 1
     const numEl = document.getElementById('gameNumberDisplay');
     if (numEl) numEl.textContent = `Game ${game.game_number}`;
 
@@ -166,14 +196,19 @@
     setVal('gameDurationMin', game.duration_minutes);
     setVal('gameDurationSec', game.duration_seconds);
 
-    // Fill tahap 2 per-role
+    // Fill per-role: set state dulu, baru render dropdown
     ROLES.forEach(({ key }) => {
       const existing = (game.players || []).find(
         (p) => (p.player_role || '').toLowerCase().replace(/\s/g, '') === key
       );
       if (!existing) return;
 
-      refreshPlayerDropdown(key, existing.player_id || null);
+      // FIX Bug A: isi state selectedPlayerIds SEBELUM refreshPlayerDropdown
+      if (existing.player_id) {
+        selectedPlayerIds[key] = String(existing.player_id);
+      }
+
+      refreshPlayerDropdown(key);
       setHeroValue(key, existing.hero_name || '');
 
       const card = document.getElementById(`card-${key}`);
@@ -189,6 +224,8 @@
       fill('.input-gold',    existing.total_gold);
     });
 
+    // Pasang listener setelah semua dropdown di-render
+    attachDropdownStateListeners();
     updateRoleProgress();
   }
 
@@ -211,7 +248,7 @@
     if (!durSec?.value.trim()) { markError(durSec); return { valid: false, message: 'Detik durasi wajib diisi.' }; }
     if (Number(durSec.value) < 0 || Number(durSec.value) > 59) {
       markError(durSec);
-      return { valid: false, message: 'Detik harus 0–59.' };
+      return { valid: false, message: 'Detik harus 0\u201359.' };
     }
     return { valid: true };
   }
@@ -340,14 +377,13 @@
 
   // ── Init ─────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-    // FIX Bug 1: baca param 'id' ATAU 'game_id' — game.html biasanya link ke editgame.html?id=X
     const rawId = getParam('id') || getParam('game_id') || '0';
     gameId  = parseInt(rawId, 10);
     matchId = parseInt(getParam('match_id') || '0', 10);
 
     if (gameId <= 0) {
       showToast('game_id tidak ditemukan di URL. Pastikan URL mengandung ?id=X', 'error');
-      return; // hentikan eksekusi agar tidak fetch dengan id=0
+      return;
     }
 
     attachRoleTabListeners();
