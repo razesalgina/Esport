@@ -5,8 +5,8 @@
     explaner: 'Exp Laner', goldlaner: 'Gold Laner',
   };
   const ROLE_BADGE = {
-    jungler: 'badge-red', roamer: 'badge-blue', midlaner: 'badge-yellow',
-    explaner: 'badge-green', goldlaner: 'badge-neutral',
+    jungler: 'badge-green', roamer: 'badge-red', midlaner: 'badge-blue',
+    explaner: 'badge-neutral', goldlaner: 'badge-yellow',
   };
 
   const apiBase = () => window.EsportConfig ? window.EsportConfig.apiBase : 'db/';
@@ -50,18 +50,18 @@
     const rows = matches.map((m) => {
       const score = m.game_count > 0
         ? `<span class="badge badge-green">${m.game_wins}</span><span class="badge badge-neutral">:</span><span class="badge badge-red">${m.game_loses}</span>`
-        : '<span class="text-faint">—</span>';
+        : '<span class="text-faint">————</span>';
       const date = m.match_date
         ? new Date(m.match_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
         : '—';
       const type = (m.type || '').toLowerCase();
       const typeBadge = type === 'scrim'
         ? 'badge-neutral'
-        : type === 'ranked' ? 'badge-yellow' : 'badge-blue';
+        : type === 'ranked' ? 'badge-neutral' : 'badge-yellow';
       return `
         <tr>
-          <td><a href="game.html?match_id=${m.id}" class="link-primary"><strong>vs ${m.opponent_name || '—'}</strong></a></td>
-          <td><span class="badge ${typeBadge}">${m.type || '—'}</span></td>
+          <td><a href="game.html?match_id=${m.id}" class="link-primary"><strong>${m.opponent_name || '—'}</strong></a></td>
+          <td><span class="badge ${typeBadge}">${m.type.toUpperCase() || '—'}</span></td>
           <td>${score}</td>
           <td><small class="text-faint">${date}</small></td>
         </tr>`;
@@ -152,7 +152,7 @@
       return;
     }
     const statuses = [
-      { key: 'upcoming', label: 'Upcoming', cls: 'badge-blue' },
+      { key: 'upcoming', label: 'Upcoming', cls: 'badge-yellow' },
       { key: 'finished', label: 'Finished', cls: 'badge-green' },
       { key: 'cancel',   label: 'Cancel',   cls: 'badge-red' },
     ];
