@@ -1,12 +1,12 @@
 // js/match.js
 (function () {
 
-  // ── State ──────────────────────────────────────
-  let allMatches     = [];
-  let competitionId  = 0;   // set jika drill-down dari competition
-  let competitionName = ''; // untuk label breadcrumb / header
+  // ── State ──────────────────────────────────
+  let allMatches      = [];
+  let competitionId   = 0;   // set jika drill-down dari competition
+  let competitionName = ''; // untuk label header & back button
 
-  // ── Helpers ─────────────────────────────────
+  // ── Helpers ─────────────────────────────
   function getParam(name) {
     return new URLSearchParams(window.location.search).get(name);
   }
@@ -17,7 +17,7 @@
     }
   }
 
-  // ── Badge helpers ────────────────────────────
+  // ── Badge helpers ────────────────────────
   function getResult(our, opp, resultFromDb) {
     let r = (resultFromDb || '').toLowerCase();
     if (!r) {
@@ -49,7 +49,7 @@
     return map[(type || '').toLowerCase()] || type || '-';
   }
 
-  // ── Delete ──────────────────────────────────
+  // ── Delete ───────────────────────────────
   function handleDeleteMatch(id, opponentName) {
     const label = opponentName ? `match vs "${opponentName}"` : `match #${id}`;
     if (!confirm(`Hapus ${label}? Tindakan ini tidak bisa dibatalkan.`)) return;
@@ -69,7 +69,7 @@
       .catch((err) => showToast(err.message || 'Gagal menghapus match.', 'error'));
   }
 
-  // ── Filter ──────────────────────────────────
+  // ── Filter ───────────────────────────────
   function getFilters() {
     const val = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
     return {
@@ -96,7 +96,7 @@
     });
   }
 
-  // ── Render ──────────────────────────────────
+  // ── Render ───────────────────────────────
   function renderEmptyState(tbody, isFiltered) {
     const addLink = competitionId
       ? `addmatch.html?competition_id=${competitionId}`
@@ -125,7 +125,6 @@
     const tbody = document.getElementById('matchBody');
     if (!tbody) return;
 
-    // Jika drill-down dari competition, filter hanya match milik competition itu
     const source   = competitionId
       ? allMatches.filter((m) => m.competition_id == competitionId)
       : allMatches;
@@ -161,7 +160,7 @@
     });
   }
 
-  // ── Toolbar ────────────────────────────────
+  // ── Toolbar ──────────────────────────────
   function makeSelect(id, placeholder, options) {
     const sel = document.createElement('select');
     sel.id = id;
@@ -209,28 +208,82 @@
     tableWrap.parentElement.insertBefore(toolbar, tableWrap);
   }
 
-  // ── Context banner (saat drill-down dari competition) ──
+  // ── Competition context (drill-down dari competition page) ──
+  //
+  // Jika ada competition_id di URL, inject:
+  //   1. Breadcrumb: Esport / Competition / Match (dengan link balik)
+  //   2. Back button di page-header menuju competition.html
+  //   3. Page title & sub dinamis sesuai nama turnamen
+  //   4. Tombol Tambah Match bawa competition_id
+  //   5. Section title tabel berubah sesuai nama turnamen
   function setupCompetitionContext() {
     if (!competitionId) return;
 
-    // Update breadcrumb: tambah link Competition
-    const breadcrumbCurrent = document.querySelector('.topbar-breadcrumb .current');
-    if (breadcrumbCurrent) {
-      const sep1  = document.createElement('span'); sep1.className = 'sep'; sep1.textContent = '/';
-      const link1 = document.createElement('a');
-      link1.href = 'competition.html';
-      link1.textContent = 'Competition';
-      link1.style.cssText = 'color:var(--primary);text-decoration:none;';
-      const sep2  = document.createElement('span'); sep2.className = 'sep'; sep2.textContent = '/';
-      breadcrumbCurrent.parentElement.insertBefore(sep2, breadcrumbCurrent);
-      breadcrumbCurrent.parentElement.insertBefore(link1, sep2);
-      breadcrumbCurrent.parentElement.insertBefore(sep1, link1);
-      breadcrumbCurrent.textContent = 'Match';
+    // 1. Update breadcrumb
+    const breadcrumbWrap = document.querySelector('.topbar-breadcrumb');
+    if (breadcrumbWrap) {
+      const current = breadcrumbWrap.querySelector('.current');
+      if (current) {
+        // Sisipkan "Competition /" sebelum "Match"
+        const sepComp  = document.createElement('span'); sepComp.className = 'sep'; sepComp.textContent = '/';
+        const linkComp = document.createElement('a');
+        linkComp.href = 'competition.html';
+        linkComp.textContent = 'Competition';
+
+        current.parentElement.insertBefore(sepComp,  current);
+        current.parentElement.insertBefore(linkComp, sepComp);
+
+        const sepMatch  = document.createElement('span'); sepMatch.className = 'sep'; sepMatch.textContent = '/';
+        current.parentElement.insertBefore(sepMatch, current);
+
+        current.textContent = 'Match';
+      }
     }
 
-    // Tombol Tambah Match bawa competition_id
-    const addMatchBtn = document.querySelector('a[href="addmatch.html"]');
+    // 2. Inject back button ke page-header
+    const pageHeader = document.querySelector('.page-header');
+    if (pageHeader && !document.getElementById('matchBackBtn')) {
+      const backBtn = document.createElement('a');
+      backBtn.id        = 'matchBackBtn';
+      backBtn.href      = 'competition.html';
+      backBtn.className = 'btn btn-secondary';
+      backBtn.innerHTML = `
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Kembali`;
+
+      // Letakkan sebelum tombol Tambah Match yang sudah ada
+      const addBtn = pageHeader.querySelector('a[href="addmatch.html"], a[href^="addmatch.html"]');
+      if (addBtn) {
+        pageHeader.insertBefore(backBtn, addBtn);
+      } else {
+        pageHeader.appendChild(backBtn);
+      }
+    }
+
+    // 3. Update page title & sub
+    const pageTitle = document.querySelector('.page-title');
+    const pageSub   = document.querySelector('.page-sub');
+    if (pageTitle) pageTitle.textContent = competitionName
+      ? `Match — ${competitionName}`
+      : 'Match Turnamen';
+    if (pageSub) pageSub.textContent = competitionName
+      ? `Daftar match untuk ${competitionName}`
+      : 'Daftar match untuk turnamen ini';
+
+    // 4. Tombol Tambah Match bawa competition_id
+    const addMatchBtn = pageHeader
+      ? pageHeader.querySelector('a[href="addmatch.html"]')
+      : document.querySelector('a[href="addmatch.html"]');
     if (addMatchBtn) addMatchBtn.href = `addmatch.html?competition_id=${competitionId}`;
+
+    // 5. Section title
+    const sectionTitle = document.querySelector('#matchSection .section-title');
+    if (sectionTitle) sectionTitle.textContent = competitionName
+      ? `Match: ${competitionName}`
+      : 'Match Turnamen Ini';
   }
 
   // ── Fetch competition name ─────────────────────
@@ -247,7 +300,6 @@
   // ── Fetch & init ────────────────────────────
   function loadMatches() {
     const apiBase = window.EsportConfig ? window.EsportConfig.apiBase : 'db/';
-    // Jika ada competition_id, minta hanya match untuk competition itu; fallback ke semua
     const url = competitionId
       ? `${apiBase}match_api.php?action=list&competition_id=${competitionId}`
       : `${apiBase}match_api.php?action=list`;
@@ -273,7 +325,7 @@
     }
 
     setupToolbar();
-    setupCompetitionContext();
+    setupCompetitionContext(); // inject back button + context setelah competitionName tersedia
     loadMatches();
   });
 
