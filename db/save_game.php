@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 require __DIR__ . '/db.php';
 
 $rawInput = file_get_contents('php://input');
-$data = json_decode($rawInput, true);
+$data     = json_decode($rawInput, true);
 
 if (!$data) {
     http_response_code(400);
@@ -37,32 +37,34 @@ if ($matchId <= 0) {
 try {
     $pdo->beginTransaction();
 
-    // ── Auto game_number ──
+    // ── Auto game_number ──────────────────────────────────────────────────
     $countStmt = $pdo->prepare('SELECT COUNT(*) FROM games WHERE match_id = :match_id');
     $countStmt->execute([':match_id' => $matchId]);
     $gameNumber = (int)$countStmt->fetchColumn() + 1;
 
-    // ── Validasi batas BO dari matches.format ──
+    // ── Validasi batas BO dari matches.format ─────────────────────────────
     $fmtStmt = $pdo->prepare('SELECT format FROM matches WHERE id = :id');
     $fmtStmt->execute([':id' => $matchId]);
     $fmt = $fmtStmt->fetchColumn();
     if ($fmt) {
         $maxGames = (int)filter_var($fmt, FILTER_SANITIZE_NUMBER_INT);
         if ($maxGames > 0 && $gameNumber > $maxGames) {
+            $pdo->rollBack();
             http_response_code(422);
             echo json_encode([
                 'ok'      => false,
-                'message' => "Batas maksimal game untuk format {$fmt} sudah tercapai ({$maxGames} game)"
+                'message' => "Batas maksimal game untuk format {$fmt} sudah tercapai ({$maxGames} game)",
             ]);
-            $pdo->rollBack();
             exit;
         }
     }
 
-    // ── Insert game ──
+    // ── Insert games ──────────────────────────────────────────────────────
     $stmt = $pdo->prepare('
-        INSERT INTO games (match_id, game_number, result, team_kills, team_deaths, duration_minutes, duration_seconds)
-        VALUES (:match_id, :game_number, :result, :team_kills, :team_deaths, :duration_minutes, :duration_seconds)
+        INSERT INTO games
+            (match_id, game_number, result, team_kills, team_deaths, duration_minutes, duration_seconds)
+        VALUES
+            (:match_id, :game_number, :result, :team_kills, :team_deaths, :duration_minutes, :duration_seconds)
     ');
     $stmt->execute([
         ':match_id'         => $matchId,
@@ -73,44 +75,60 @@ try {
         ':duration_minutes' => $gameInfo['durationMinutes'],
         ':duration_seconds' => $gameInfo['durationSeconds'],
     ]);
-
     $gameId = (int)$pdo->lastInsertId();
 
-    // ── Insert game_players ──
-    // FIX BUG C: gunakan player_id (FK ke tabel players) bukan player_name
-    // FIX BUG B: kda dibaca dari payload, tidak dihitung otomatis
+    // ── Ambil primary_role dari tabel players (batch) ─────────────────────
+    // player_role di game_players diisi otomatis dari players.primary_role
+    // sehingga tidak perlu input manual dari form.
+    $playerIds = array_filter(array_map(fn($p) => (int)($p['playerId'] ?? 0), $playerStats));
+    $roleMap   = [];
+    if (!empty($playerIds)) {
+        $inClause  = implode(',', array_fill(0, count($playerIds), '?'));
+        $roleStmt  = $pdo->prepare("SELECT id, primary_role FROM players WHERE id IN ($inClause)");
+        $roleStmt->execute(array_values($playerIds));
+        foreach ($roleStmt->fetchAll() as $row) {
+            $roleMap[(int)$row['id']] = $row['primary_role'] ?? '';
+        }
+    }
+
+    // ── Insert game_players ───────────────────────────────────────────────
     $playerStmt = $pdo->prepare('
-        INSERT INTO game_players (game_id, player_id, role_name, hero_name, kills, deaths, assists, kda, total_gold)
-        VALUES (:game_id, :player_id, :role_name, :hero_name, :kills, :deaths, :assists, :kda, :total_gold)
+        INSERT INTO game_players
+            (game_id, player_id, player_role, hero_name, kills, deaths, assists, kda, total_gold)
+        VALUES
+            (:game_id, :player_id, :player_role, :hero_name, :kills, :deaths, :assists, :kda, :total_gold)
     ');
 
     foreach ($playerStats as $player) {
         $playerId  = (int)($player['playerId']  ?? 0);
         $heroName  = trim($player['heroName']   ?? '');
-        $roleName  = trim($player['roleName']   ?? '');
         $kills     = (int)($player['kills']     ?? 0);
         $deaths    = (int)($player['deaths']    ?? 0);
         $assists   = (int)($player['assists']   ?? 0);
-        $kda       = round((float)($player['kda'] ?? 0.0), 2);
+        $kda       = round((float)($player['kda'] ?? (($kills + $assists) / max($deaths, 1))), 2);
         $totalGold = (int)($player['totalGold'] ?? 0);
 
         if ($playerId <= 0) {
             $pdo->rollBack();
             http_response_code(422);
-            echo json_encode(['ok' => false, 'message' => "player_id tidak valid untuk role {$roleName}"]);
+            echo json_encode(['ok' => false, 'message' => "player_id tidak valid (index game_players)"]);
             exit;
         }
 
+        // Auto-fill player_role dari players.primary_role
+        // Fallback: jika payload mengirim roleName, pakai itu; prioritas DB.
+        $playerRole = $roleMap[$playerId] ?? trim($player['roleName'] ?? '');
+
         $playerStmt->execute([
-            ':game_id'    => $gameId,
-            ':player_id'  => $playerId,
-            ':role_name'  => $roleName,
-            ':hero_name'  => $heroName,
-            ':kills'      => $kills,
-            ':deaths'     => $deaths,
-            ':assists'    => $assists,
-            ':kda'        => $kda,
-            ':total_gold' => $totalGold,
+            ':game_id'     => $gameId,
+            ':player_id'   => $playerId,
+            ':player_role' => $playerRole,
+            ':hero_name'   => $heroName,
+            ':kills'       => $kills,
+            ':deaths'      => $deaths,
+            ':assists'     => $assists,
+            ':kda'         => $kda,
+            ':total_gold'  => $totalGold,
         ]);
     }
 

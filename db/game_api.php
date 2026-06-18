@@ -6,7 +6,7 @@ require __DIR__ . '/db.php';
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
-// ── GET: list games ─────────────────────────────
+// ── GET: list games ──────────────────────────────────────────────────────
 if ($method === 'GET' && $action === 'list') {
     $matchId = isset($_GET['match_id']) ? (int)$_GET['match_id'] : 0;
     if ($matchId <= 0) {
@@ -29,7 +29,8 @@ if ($method === 'GET' && $action === 'list') {
             $gameIds  = array_column($games, 'id');
             $inClause = implode(',', array_fill(0, count($gameIds), '?'));
 
-            // FIX: player_name → JOIN players ON p.id = gp.player_id → p.name
+            // MVP: player dengan KDA tertinggi per game
+            // JOIN players untuk ambil nama; player_role sudah ada di game_players
             $mvpStmt = $pdo->prepare(
                 "SELECT gp.game_id, p.name AS player_name,
                         ROUND((gp.kills + gp.assists) / GREATEST(gp.deaths, 1), 2) AS kda
@@ -60,12 +61,12 @@ if ($method === 'GET' && $action === 'list') {
         echo json_encode(['ok' => true, 'games' => $games]);
     } catch (Throwable $e) {
         http_response_code(500);
-        echo json_encode(['ok' => false, 'message' => 'Gagal mengambil data game']);
+        echo json_encode(['ok' => false, 'message' => 'Gagal mengambil data game: ' . $e->getMessage()]);
     }
     exit;
 }
 
-// ── GET: single game ───────────────────────────
+// ── GET: single game ─────────────────────────────────────────────────────
 if ($method === 'GET' && $action === 'get') {
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     if ($id <= 0) {
@@ -87,9 +88,10 @@ if ($method === 'GET' && $action === 'get') {
             exit;
         }
 
-        // FIX: player_role → role_name, player_name → JOIN players
+        // player_role diambil langsung dari game_players (sudah disimpan saat insert)
+        // player_name di-JOIN dari tabel players
         $pStmt = $pdo->prepare(
-            'SELECT gp.role_name, p.name AS player_name, p.id AS player_id,
+            'SELECT gp.player_role, p.name AS player_name, p.id AS player_id,
                     gp.hero_name, gp.kills, gp.deaths, gp.assists, gp.kda, gp.total_gold
              FROM game_players gp
              JOIN players p ON p.id = gp.player_id
@@ -102,12 +104,12 @@ if ($method === 'GET' && $action === 'get') {
         echo json_encode(['ok' => true, 'game' => $game]);
     } catch (Throwable $e) {
         http_response_code(500);
-        echo json_encode(['ok' => false, 'message' => 'Gagal mengambil detail game']);
+        echo json_encode(['ok' => false, 'message' => 'Gagal mengambil detail game: ' . $e->getMessage()]);
     }
     exit;
 }
 
-// ── GET: players list ──────────────────────────
+// ── GET: players list ────────────────────────────────────────────────────
 if ($method === 'GET' && $action === 'players') {
     try {
         $stmt = $pdo->query(
@@ -121,15 +123,16 @@ if ($method === 'GET' && $action === 'players') {
     exit;
 }
 
-// ── GET: heroes list ──────────────────────────
+// ── GET: heroes list ─────────────────────────────────────────────────────
 if ($method === 'GET' && $action === 'heroes') {
     try {
-        $stmt = $pdo->query('SELECT name FROM mlbb_heroes ORDER BY name ASC');
+        $stmt   = $pdo->query('SELECT name FROM mlbb_heroes ORDER BY name ASC');
         $heroes = $stmt->fetchAll(PDO::FETCH_COLUMN);
         echo json_encode(['ok' => true, 'heroes' => $heroes]);
     } catch (Throwable $e) {
+        // fallback kolom lama
         try {
-            $stmt2 = $pdo->query('SELECT nama_hero FROM mlbb_heroes ORDER BY nama_hero ASC');
+            $stmt2  = $pdo->query('SELECT nama_hero FROM mlbb_heroes ORDER BY nama_hero ASC');
             $heroes = $stmt2->fetchAll(PDO::FETCH_COLUMN);
             echo json_encode(['ok' => true, 'heroes' => $heroes]);
         } catch (Throwable $e2) {
@@ -140,12 +143,12 @@ if ($method === 'GET' && $action === 'heroes') {
     exit;
 }
 
-// ── POST ──────────────────────────────────────
+// ── POST ─────────────────────────────────────────────────────────────────
 if ($method === 'POST') {
     $data   = json_decode(file_get_contents('php://input'), true) ?? [];
     $action = $data['action'] ?? $action;
 
-    // ── DELETE ──
+    // ── DELETE ──────────────────────────────────────────────────────────
     if ($action === 'delete') {
         $id = (int)($data['id'] ?? 0);
         if ($id <= 0) {
@@ -176,16 +179,16 @@ if ($method === 'POST') {
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             http_response_code(500);
-            echo json_encode(['ok' => false, 'message' => 'Gagal menghapus game']);
+            echo json_encode(['ok' => false, 'message' => 'Gagal menghapus game: ' . $e->getMessage()]);
         }
         exit;
     }
 
-    // ── UPDATE ──
+    // ── UPDATE ──────────────────────────────────────────────────────────
     if ($action === 'update') {
-        $id          = (int)($data['id'] ?? 0);
-        $gameInfo    = $data['game']    ?? null;
-        $playerStats = $data['players'] ?? null;
+        $id          = (int)($data['id']      ?? 0);
+        $gameInfo    = $data['game']           ?? null;
+        $playerStats = $data['players']        ?? null;
 
         if ($id <= 0 || !$gameInfo || !$playerStats || !is_array($playerStats)) {
             http_response_code(400);
@@ -210,33 +213,48 @@ if ($method === 'POST') {
             $pdo->prepare('DELETE FROM game_players WHERE game_id = :gid')
                 ->execute([':gid' => $id]);
 
-            // FIX: player_role/player_name → player_id + role_name, kda dari payload
+            // Ambil primary_role dari players (batch) untuk auto-fill player_role
+            $playerIds = array_filter(array_map(fn($p) => (int)($p['playerId'] ?? 0), $playerStats));
+            $roleMap   = [];
+            if (!empty($playerIds)) {
+                $inClause = implode(',', array_fill(0, count($playerIds), '?'));
+                $roleStmt = $pdo->prepare("SELECT id, primary_role FROM players WHERE id IN ($inClause)");
+                $roleStmt->execute(array_values($playerIds));
+                foreach ($roleStmt->fetchAll() as $row) {
+                    $roleMap[(int)$row['id']] = $row['primary_role'] ?? '';
+                }
+            }
+
             $pStmt = $pdo->prepare(
-                'INSERT INTO game_players (game_id, player_id, role_name, hero_name, kills, deaths, assists, kda, total_gold)
-                 VALUES (:gid, :player_id, :role, :hero, :k, :d, :a, :kda, :g)'
+                'INSERT INTO game_players
+                    (game_id, player_id, player_role, hero_name, kills, deaths, assists, kda, total_gold)
+                 VALUES
+                    (:gid, :player_id, :player_role, :hero, :k, :d, :a, :kda, :g)'
             );
             foreach ($playerStats as $p) {
                 $playerId = (int)($p['playerId'] ?? 0);
                 if ($playerId <= 0) {
                     $pdo->rollBack();
                     http_response_code(422);
-                    echo json_encode(['ok' => false, 'message' => "player_id tidak valid untuk role {$p['roleName']}"]);
+                    echo json_encode(['ok' => false, 'message' => "player_id tidak valid"]);
                     exit;
                 }
-                $k   = (int)($p['kills']   ?? 0);
-                $d   = (int)($p['deaths']  ?? 0);
-                $a   = (int)($p['assists'] ?? 0);
-                $kda = round((float)($p['kda'] ?? (($k + $a) / max($d, 1))), 2);
+                $k          = (int)($p['kills']   ?? 0);
+                $d          = (int)($p['deaths']  ?? 0);
+                $a          = (int)($p['assists'] ?? 0);
+                $kda        = round((float)($p['kda'] ?? (($k + $a) / max($d, 1))), 2);
+                $playerRole = $roleMap[$playerId] ?? trim($p['roleName'] ?? '');
+
                 $pStmt->execute([
-                    ':gid'       => $id,
-                    ':player_id' => $playerId,
-                    ':role'      => $p['roleName'],
-                    ':hero'      => $p['heroName'],
-                    ':k'         => $k,
-                    ':d'         => $d,
-                    ':a'         => $a,
-                    ':kda'       => $kda,
-                    ':g'         => (int)($p['totalGold'] ?? 0),
+                    ':gid'         => $id,
+                    ':player_id'   => $playerId,
+                    ':player_role' => $playerRole,
+                    ':hero'        => $p['heroName'],
+                    ':k'           => $k,
+                    ':d'           => $d,
+                    ':a'           => $a,
+                    ':kda'         => $kda,
+                    ':g'           => (int)($p['totalGold'] ?? 0),
                 ]);
             }
 
@@ -245,7 +263,7 @@ if ($method === 'POST') {
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             http_response_code(500);
-            echo json_encode(['ok' => false, 'message' => 'Gagal mengupdate game']);
+            echo json_encode(['ok' => false, 'message' => 'Gagal mengupdate game: ' . $e->getMessage()]);
         }
         exit;
     }
