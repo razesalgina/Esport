@@ -230,7 +230,7 @@
           .forEach((c) => {
             const opt        = document.createElement('option');
             opt.value        = c.id;
-            opt.textContent  = `${c.name} (${c.type})`;
+            opt.textContent  = `${c.name}`;
             // Tandai selected jika cocok dengan competition_id dari URL
             if (selectedId && Number(c.id) === Number(selectedId)) {
               opt.selected = true;
