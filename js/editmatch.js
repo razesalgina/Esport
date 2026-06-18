@@ -117,6 +117,8 @@
     const placeholderOpt       = document.createElement('option');
     placeholderOpt.value       = '';
     placeholderOpt.textContent = filterType === 'tournament' ? 'Pilih Tournament' : 'Pilih League';
+    placeholderOpt.disabled = true;
+    placeholderOpt.selected = true;
     eventSelect.appendChild(placeholderOpt);
 
     fetch(`${apiBase()}competition_api.php?action=list`)
@@ -187,9 +189,6 @@
     const formatSelect = document.getElementById('matchFormat');
     if (formatSelect && match.format) formatSelect.value = match.format;
 
-    const ourScoreInput = document.getElementById('ourScore');
-    if (ourScoreInput) ourScoreInput.value = match.our_score != null ? match.our_score : 0;
-
     const oppScoreInput = document.getElementById('opponentScore');
     if (oppScoreInput) oppScoreInput.value = match.opponent_score != null ? match.opponent_score : 0;
 
@@ -226,7 +225,6 @@
       opponent_name:  null,
       match_date:     formData.get('matchDate') || null,
       match_time:     null,
-      our_score:      parseInt(formData.get('ourScore') || '0', 10),
       opponent_score: parseInt(formData.get('opponentScore') || '0', 10),
       status:         formData.get('matchStatus') || null,
     };
