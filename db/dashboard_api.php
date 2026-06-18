@@ -4,24 +4,20 @@ header('Content-Type: application/json');
 require __DIR__ . '/db.php';
 
 try {
-    // ─── KPI ─────────────────────────────
+    // ─── KPI ────────────────────────────────────
     $kompetisi  = (int)$pdo->query('SELECT COUNT(*) FROM competitions')->fetchColumn();
     $matchTotal = (int)$pdo->query('SELECT COUNT(*) FROM matches')->fetchColumn();
 
-    // FIX: hitung pemain unik dari game_players UNION players aktif
-    // Menggunakan COUNT(*) dari subquery agar kompatibel dengan semua MySQL mode
+    // FIX: tidak ada kolom player_name di game_players.
+    // Hitung pemain unik dari players aktif UNION player_id yang pernah main.
     $players = (int)$pdo->query(
         "SELECT COUNT(*) FROM (
-            SELECT name
-              FROM players
-             WHERE is_active = 1
+            SELECT id FROM players WHERE is_active = 1
             UNION
-            SELECT DISTINCT player_name
-              FROM game_players
+            SELECT DISTINCT player_id FROM game_players
          ) AS all_active"
     )->fetchColumn();
 
-    // Winrate dari games
     $wr = $pdo->query(
         "SELECT COUNT(*) AS total,
                 SUM(result = 'win') AS wins
@@ -31,7 +27,7 @@ try {
         ? round($wr['wins'] / $wr['total'] * 100, 1)
         : null;
 
-    // ─── Match Summary (5 match terakhir) ─────────────────
+    // ─── Match Summary (5 match terakhir) ───────────────
     $recentMatches = $pdo->query(
         "SELECT m.id, m.opponent_name, m.match_date, m.type, m.format,
                 COUNT(g.id)              AS game_count,
@@ -51,23 +47,20 @@ try {
     }
     unset($rm);
 
-    // ─── Team Analysis: avg KDA per pemain ───────────────
-    // FIX only_full_group_by:
-    //   - Gunakan ANY_VALUE(p.primary_role) agar MySQL tidak menolak kolom
-    //     yang tidak ada di GROUP BY.
-    //   - ANY_VALUE mengambil nilai arbitrary dari grup — aman karena satu
-    //     player_name seharusnya memiliki satu primary_role yang konsisten.
+    // ─── Team Analysis: avg KDA per pemain ──────────────
+    // FIX: GROUP BY player_name → GROUP BY gp.player_id + JOIN players
+    // Output key player_name tetap agar JS tidak perlu diubah.
     $stmtTeam = $pdo->prepare(
-        "SELECT gp.player_name,
-                ANY_VALUE(p.primary_role)  AS primary_role,
-                COUNT(*)                   AS games,
-                SUM(gp.kills)              AS total_kills,
-                SUM(gp.deaths)             AS total_deaths,
-                SUM(gp.assists)            AS total_assists,
-                ROUND(AVG(gp.kda), 2)      AS avg_kda
+        "SELECT p.name                    AS player_name,
+                ANY_VALUE(p.primary_role) AS primary_role,
+                COUNT(*)                  AS games,
+                SUM(gp.kills)             AS total_kills,
+                SUM(gp.deaths)            AS total_deaths,
+                SUM(gp.assists)           AS total_assists,
+                ROUND(AVG(gp.kda), 2)     AS avg_kda
          FROM game_players gp
-         LEFT JOIN players p ON p.name = gp.player_name
-         GROUP BY gp.player_name
+         JOIN players p ON p.id = gp.player_id
+         GROUP BY gp.player_id, p.name
          ORDER BY avg_kda DESC"
     );
     $stmtTeam->execute();
@@ -97,7 +90,7 @@ try {
     }
     unset($hp);
 
-    // ─── Competition summary ─────────────────────────
+    // ─── Competition summary ────────────────────────
     $compStats = $pdo->query(
         "SELECT status, COUNT(*) AS cnt FROM competitions GROUP BY status"
     )->fetchAll();
