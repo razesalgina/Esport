@@ -115,7 +115,8 @@
           <h1 class="page-title" id="pageTitle">Edit Match</h1>
           <p class="page-sub">Perbarui detail pertandingan</p>
         </div>
-        <a href="match.html" class="btn btn-secondary">
+        <!-- data-back-btn: href diisi dinamis oleh editmatch.js berdasarkan competition_id & type -->
+        <a href="match.html" class="btn btn-secondary" data-back-btn>
           <svg viewBox="0 0 24 24">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
@@ -125,8 +126,10 @@
 
       <div class="card form-card">
         <form id="editMatchForm">
-          <!-- Hidden ID -->
+          <!-- Hidden: ID match -->
           <input type="hidden" id="matchId" name="id" />
+          <!-- Hidden: competition_id aktif, dibaca buildBackUrl() untuk redirect dinamis -->
+          <input type="hidden" id="matchCompetitionId" name="competition_id" />
 
           <div class="form-section">
             <div class="form-section-title">Detail Match</div>
@@ -212,7 +215,8 @@
               </svg>
               Simpan Perubahan
             </button>
-            <a href="match.html" class="btn btn-ghost">Batal</a>
+            <!-- data-back-btn: href diisi dinamis oleh editmatch.js -->
+            <a href="match.html" class="btn btn-ghost" data-back-btn>Batal</a>
           </div>
         </form>
       </div>
