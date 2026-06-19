@@ -9,9 +9,8 @@
    BASE RESET
    ============================================================ */
 html, body {
-  overflow-x: auto;
-  overflow-y: auto;
-  max-width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 /* ============================================================
@@ -86,7 +85,7 @@ html, body {
   --space-16: 4rem;
 
   /* Layout */
-  --content-default: 1200px;
+  --content-default: 2048px;
   --sidebar-width:   220px;
   --topbar-height:   60px;
 
@@ -414,10 +413,10 @@ a, button, [role="button"], input, textarea, select {
 }
 
 /* ---- Main Wrapper ---- */
-.main-wrapper {
+.main-wrapper {  
   margin-left: var(--sidebar-width);
   min-width: 0;
-  width: calc(100% - var(--sidebar-width));
+  max-width: 2048;
 }
 
 /* ---- Topbar ---- */
