@@ -81,7 +81,9 @@
       _overlay.style.display = 'flex';
     }
 
-    /* Tombol reusable */
+    /* ── Tombol reusable ──
+     * FIX: b.type = 'button' agar tidak memicu form submit
+     */
     function _btn(label, variant) {
       const colors = {
         danger:    'background:#dc2626;color:#fff;border:none',
@@ -89,6 +91,7 @@
         secondary: 'background:var(--color-surface-offset,#f1f5f9);color:var(--color-text,#1e293b);border:1px solid var(--color-border,#e2e8f0)',
       };
       const b = document.createElement('button');
+      b.type = 'button'; // ← FIX: cegah submit form
       b.innerHTML = label;
       b.style.cssText = `
         display:inline-flex;align-items:center;gap:6px;
@@ -157,13 +160,13 @@
       };
 
       cards.appendChild(makeCard(
-        '🗑️',
+        '\uD83D\uDDD1\uFE0F',
         'Hapus beserta semua data di dalamnya',
         'Semua Match dan Game yang terkait akan ikut dihapus secara permanen.',
         'cascade'
       ));
       cards.appendChild(makeCard(
-        '📂',
+        '\uD83D\uDCC2',
         'Hapus kompetisi ini saja',
         'Data Match & Game tetap tersimpan dan masih bisa diakses untuk diedit.',
         'detach'
@@ -199,7 +202,7 @@
 
       const icon = document.createElement('div');
       icon.style.cssText = 'font-size:2.5rem;text-align:center;margin-bottom:12px';
-      icon.textContent = isCascade ? '⚠️' : '📂';
+      icon.textContent = isCascade ? '\u26A0\uFE0F' : '\uD83D\uDCC2';
 
       const title = document.createElement('p');
       title.style.cssText = 'margin:0 0 8px;font-size:1rem;font-weight:700;color:var(--color-text,#1e293b);text-align:center';
@@ -214,10 +217,13 @@
       const footer = document.createElement('div');
       footer.style.cssText = 'display:flex;justify-content:flex-end;gap:10px';
 
-      const backBtn    = _btn('← Kembali', 'secondary');
+      const backBtn = _btn('\u2190 Kembali', 'secondary');
       backBtn.addEventListener('click', () => showStep1(label, (m) => showStep2(label, m, onConfirm)));
 
-      const confirmBtn = _btn(isCascade ? '🗑️ Ya, Hapus Semua' : '📂 Ya, Hapus Saja', isCascade ? 'danger' : 'warning');
+      const confirmBtn = _btn(
+        isCascade ? '\uD83D\uDDD1\uFE0F Ya, Hapus Semua' : '\uD83D\uDCC2 Ya, Hapus Saja',
+        isCascade ? 'danger' : 'warning'
+      );
       confirmBtn.addEventListener('click', () => { _close(); onConfirm(mode); });
 
       footer.appendChild(backBtn);
@@ -307,6 +313,7 @@
     editBtn.textContent = 'Edit';
 
     const deleteBtn = document.createElement('button');
+    deleteBtn.type        = 'button';
     deleteBtn.className   = 'btn btn-sm btn-danger';
     deleteBtn.textContent = 'Hapus';
     deleteBtn.addEventListener('click', () => handleDeleteCompetition(competition.id, competition.name));

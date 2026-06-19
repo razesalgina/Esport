@@ -83,14 +83,26 @@ if ($method === 'POST') {
     $validTypes    = ['tournament', 'league', 'scrim', 'ranked'];
     $validStatuses = ['upcoming', 'finished', 'cancel'];
 
-    // ─── DELETE ─────────────────────────────────
+    // ─── DELETE ──────────────────────────────────────────────────────
+    /**
+     * mode 'cascade' → hapus match + semua games miliknya
+     * mode 'detach'  → lepas relasi games (games.match_id = NULL), lalu hapus match
+     *
+     * Validasi mode diperketat: hanya 'cascade' atau 'detach' yang diterima.
+     */
     if ($action === 'delete') {
-        $id       = (int)($data['id'] ?? 0);
-        $mode     = $data['mode'] ?? 'cascade'; // 'cascade' | 'detach'
+        $id   = (int)($data['id']   ?? 0);
+        $mode = trim($data['mode']  ?? 'cascade');
 
         if ($id <= 0) {
             http_response_code(400);
-            echo json_encode(['ok' => false, 'message' => 'ID tidak valid']);
+            echo json_encode(['ok' => false, 'message' => 'ID match tidak valid']);
+            exit;
+        }
+
+        if (!in_array($mode, ['cascade', 'detach'], true)) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'message' => 'Mode hapus tidak valid. Gunakan cascade atau detach.']);
             exit;
         }
 
@@ -98,13 +110,16 @@ if ($method === 'POST') {
             $pdo->beginTransaction();
 
             if ($mode === 'cascade') {
-                // Hapus semua games milik match ini
-                $pdo->prepare('DELETE FROM games WHERE match_id = :mid')->execute([':mid' => $id]);
+                // Hapus semua games milik match ini secara permanen
+                $pdo->prepare('DELETE FROM games WHERE match_id = :mid')
+                    ->execute([':mid' => $id]);
             } else {
-                // Detach: lepas game dari match, data game tetap ada
-                $pdo->prepare('UPDATE games SET match_id = NULL WHERE match_id = :mid')->execute([':mid' => $id]);
+                // Detach: lepas relasi game ↔ match, data game tetap ada
+                $pdo->prepare('UPDATE games SET match_id = NULL WHERE match_id = :mid')
+                    ->execute([':mid' => $id]);
             }
 
+            // Hapus match
             $stmt = $pdo->prepare('DELETE FROM matches WHERE id = :id');
             $stmt->execute([':id' => $id]);
 
@@ -117,8 +132,9 @@ if ($method === 'POST') {
 
             $pdo->commit();
             echo json_encode(['ok' => true]);
+
         } catch (Throwable $e) {
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) $pdo->rollBack();
             http_response_code(500);
             echo json_encode(['ok' => false, 'message' => 'Gagal menghapus match: ' . $e->getMessage()]);
         }
