@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/hero-picker.css"/>
   <script src="js/global.js" defer></script>
   <script src="js/index.js" defer></script>
 </head>
@@ -167,19 +168,19 @@
         </div>
       </div>
 
-      <!-- Row 3: Hero Picks + Competition Status -->
+      <!-- Row 3: Player Hero Analysis + Competition Status -->
       <div class="grid-2" style="margin-top:1.5rem">
         <div class="card">
           <div class="card-header">
             <div>
-              <div class="section-title">Hero Most Picked</div>
-              <div class="section-sub">Top 8 hero yang sering dipakai</div>
+              <div class="section-title">Player Hero Analysis</div>
+              <div class="section-sub">Top hero terbaik dan hero nyaman per player aktif</div>
             </div>
           </div>
-          <div id="heroPicks">
+          <div id="playerHeroRows">
             <div class="empty-state">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <h3>Belum ada data hero</h3>
+              <h3>Belum ada data player</h3>
               <p>Data akan muncul setelah game dicatat</p>
             </div>
           </div>
@@ -208,6 +209,64 @@
       </div>
 
     </main>
+  </div>
+</div>
+
+<div id="playerHeroDetailModal" class="hero-detail-modal" hidden aria-hidden="true">
+  <div class="hero-detail-modal__backdrop" data-close-player-detail></div>
+
+  <div class="hero-detail-modal__panel" role="dialog" aria-modal="true" aria-labelledby="playerHeroDetailTitle">
+    <div class="hero-detail-modal__header">
+      <div>
+        <div class="section-title" id="playerHeroDetailTitle">Player Detail</div>
+        <div class="section-sub" id="playerHeroDetailSub">Detail hero aktif player</div>
+      </div>
+      <button type="button" class="hero-detail-modal__close" data-close-player-detail aria-label="Tutup detail">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="hero-detail-modal__body">
+      <div class="hero-detail-toolbar">
+        <input
+          type="text"
+          id="playerHeroSearch"
+          class="hero-detail-search"
+          placeholder="Searching hero..."
+          autocomplete="off"
+        />
+
+        <!-- NEW: sort filter button small -->
+        <div id="playerHeroSortMenu" class="hero-detail-sort">
+          <button type="button" class="hero-detail-filter" data-sort-key="games">
+            Game <span class="sort-icon"></span>
+          </button>
+          <button type="button" class="hero-detail-filter" data-sort-key="winrate">
+            Winrate <span class="sort-icon"></span>
+          </button>
+          <button type="button" class="hero-detail-filter" data-sort-key="kda">
+            KDA <span class="sort-icon"></span>
+          </button>
+        </div>
+
+        <div class="hero-detail-filters" id="playerHeroRoleFilters">
+          <button type="button" class="hero-detail-filter is-active" data-role="all">All</button>
+          <button type="button" class="hero-detail-filter" data-role="tank">Tank</button>
+          <button type="button" class="hero-detail-filter" data-role="fighter">Fighter</button>
+          <button type="button" class="hero-detail-filter" data-role="assassin">Assassin</button>
+          <button type="button" class="hero-detail-filter" data-role="marksman">Marksman</button>
+          <button type="button" class="hero-detail-filter" data-role="mage">Mage</button>
+          <button type="button" class="hero-detail-filter" data-role="support">Support</button>
+        </div>
+      </div>
+
+      <div id="playerHeroDetailList" class="hero-detail-list">
+        <div class="empty-state">
+          <h3>Belum ada detail</h3>
+          <p>Pilih player untuk melihat hero terbaiknya</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
