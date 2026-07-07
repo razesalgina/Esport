@@ -71,7 +71,7 @@
     { id: 53, name: 'Terizla', role: 'fighter', image: 'assets/heroes/terizla.png' },
     { id: 54, name: 'Thamuz', role: 'fighter', image: 'assets/heroes/thamuz.png' },
     { id: 55, name: 'X.Borg', role: 'fighter', image: 'assets/heroes/x.borg.png' },
-    { id: 56, name: 'Yu Zhong', role: 'fighter', image: 'assets/heroes/yu_zhong.png' },
+    { id: 56, name: 'Yu Zhong', role: 'fighter', image: 'assets/heroes/yu zhong.png' },
     { id: 57, name: 'Zilong', role: 'fighter', image: 'assets/heroes/zilong.png' },
     /* Assassin */
     { id: 58, name: 'Aamon', role: 'assassin', image: 'assets/heroes/aamon.png' },
@@ -93,7 +93,7 @@
     { id: 74, name: 'Saber', role: 'assassin', image: 'assets/heroes/saber.png' },
     { id: 75, name: 'Selena', role: 'assassin', image: 'assets/heroes/selena.png' },
     { id: 76, name: 'Suyou', role: 'assassin', image: 'assets/heroes/suyou.png' },
-    { id: 77, name: 'Yi Sun-shin', role: 'assassin', image: 'assets/heroes/yi_sun-shin.png' },
+    { id: 77, name: 'Yi Sun-shin', role: 'assassin', image: 'assets/heroes/yi sun-shin.png' },
     { id: 78, name: 'Yin', role: 'assassin', image: 'assets/heroes/yin.png' },
     /* Marksman */
     { id: 79, name: 'Beatrix', role: 'marksman', image: 'assets/heroes/beatrix.png' },
@@ -114,7 +114,7 @@
     { id: 94, name: 'Moskov', role: 'marksman', image: 'assets/heroes/moskov.png' },
     { id: 95, name: 'Natan', role: 'marksman', image: 'assets/heroes/natan.png' },
     { id: 96, name: 'Obsidia', role: 'marksman', image: 'assets/heroes/obsidia.png' },
-    { id: 97, name: 'Popol and Kupa', role: 'marksman', image: 'assets/heroes/popol_and_kupa.png' },
+    { id: 97, name: 'Popol and Kupa', role: 'marksman', image: 'assets/heroes/popol and kupa.png' },
     { id: 98, name: 'Wanwan', role: 'marksman', image: 'assets/heroes/wanwan.png' },
     /* Mage */
     { id: 99, name: 'Aurora', role: 'mage', image: 'assets/heroes/aurora.png' },
@@ -127,7 +127,7 @@
     { id: 106, name: 'Harith', role: 'mage', image: 'assets/heroes/harith.png' },
     { id: 107, name: 'Kagura', role: 'mage', image: 'assets/heroes/kagura.png' },
     { id: 108, name: 'Lunox', role: 'mage', image: 'assets/heroes/lunox.png' },
-    { id: 109, name: 'Luo Yi', role: 'mage', image: 'assets/heroes/luo_yi.png' },
+    { id: 109, name: 'Luo Yi', role: 'mage', image: 'assets/heroes/luo yi.png' },
     { id: 110, name: 'Lylia', role: 'mage', image: 'assets/heroes/lylia.png' },
     { id: 111, name: 'Nana', role: 'mage', image: 'assets/heroes/nana.png' },
     { id: 112, name: 'Novaria', role: 'mage', image: 'assets/heroes/novaria.png' },
