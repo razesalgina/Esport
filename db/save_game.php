@@ -129,9 +129,9 @@ try {
     // ── Insert game_players ───────────────────────────────────────────────
     $playerStmt = $pdo->prepare('
         INSERT INTO game_players
-            (game_id, player_id, player_role, hero_name, kills, deaths, assists, kda, total_gold)
+            (game_id, player_id, player_role, hero_id, hero_name, kills, deaths, assists, kda, total_gold)
         VALUES
-            (:game_id, :player_id, :player_role, :hero_name, :kills, :deaths, :assists, :kda, :total_gold)
+            (:game_id, :player_id, :player_role, :hero_id, :hero_name, :kills, :deaths, :assists, :kda, :total_gold)
     ');
 
     foreach ($playerStats as $player) {
@@ -142,6 +142,13 @@ try {
         $assists   = (int)($player['assists']   ?? 0);
         $kda       = round((float)($player['kda'] ?? (($kills + $assists) / max($deaths, 1))), 2);
         $totalGold = (int)($player['totalGold'] ?? 0);
+
+        $heroId = null;
+        if ($heroName !== '') {
+            $stmtHero = $pdo->prepare('SELECT id FROM mlbb_heroes WHERE name = :name LIMIT 1');
+            $stmtHero->execute([':name' => $heroName]);
+            $heroId = $stmtHero->fetchColumn();
+        }
 
         if ($playerId <= 0) {
             $pdo->rollBack();
@@ -158,6 +165,7 @@ try {
             ':game_id'     => $gameId,
             ':player_id'   => $playerId,
             ':player_role' => $playerRole,
+            ':hero_id'     => $heroId,
             ':hero_name'   => $heroName,
             ':kills'       => $kills,
             ':deaths'      => $deaths,
