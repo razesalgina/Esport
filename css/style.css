@@ -2014,7 +2014,6 @@ a, button, [role="button"], input, textarea, select {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  margin-bottom: 12px;
 }
 .stats-bar-items { display: flex; gap: 24px; flex-wrap: wrap; }
 .stats-item { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
@@ -2105,6 +2104,12 @@ th[data-sort-key]:hover { background: var(--color-surface-offset); }
 [data-theme="dark"] .hero-modal__btn-select:disabled {
   background: var(--color-surface-offset-2);
   color: var(--color-text-faint);
+}
+
+.line-separator {
+  border: none;
+  border-top: 2px solid #e0e0e0;
+  margin: 1.5rem 0;
 }
 
 /* ============================================================
